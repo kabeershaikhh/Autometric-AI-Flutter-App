@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "278768397501",
+    "project_id": "autometric-ai",
+    "storage_bucket": "autometric-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:278768397501:android:e743b91ad6537d384f5bd4",
+        "android_client_info": {
+          "package_name": "com.example.autometric_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjQbnFhPXusdHRTA7BvahENyCA-_1Kul8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
