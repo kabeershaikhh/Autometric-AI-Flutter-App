@@ -19,8 +19,15 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF7FF),
-      body: isWeb ?  WebLoginLayout(onTap: onTap,)
-                  : AndroidLoginLayout(onTap: onTap,),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (kIsWeb && constraints.maxWidth >= 950) {
+            return WebLoginLayout(onTap: onTap);
+          } else {
+            return AndroidLoginLayout(onTap: onTap);
+          }
+        },
+      ),
     );
   }
 }
@@ -41,6 +48,18 @@ class WebLoginLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final leftWidth = (screenWidth * 0.28).clamp(300.0, 430.0);
+
+    final cardWidth = (screenWidth * 0.34).clamp(380.0, 470.0);
+
+    final gap = (screenWidth * 0.06).clamp(40.0, 150.0);
+
+    final horizontalPadding =
+    (screenWidth * 0.05).clamp(20.0, 70.0);
+
     return Stack(
       children: [
         /// Background
@@ -80,8 +99,8 @@ class WebLoginLayout extends StatelessWidget {
               ),
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 70,
+                  padding:  EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
                     vertical: 40,
                   ),
                   child: Row(
@@ -93,7 +112,7 @@ class WebLoginLayout extends StatelessWidget {
                       /// LEFT SIDE
                       ////////////////////////////////////////////////////
                       SizedBox(
-                        width: 430,
+                        width: leftWidth,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 30),
                           child: Column(
@@ -208,14 +227,14 @@ class WebLoginLayout extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(width: 150),
+                       SizedBox(width: gap),
 
                       ////////////////////////////////////////////////////
                       /// RIGHT SIDE
                       ////////////////////////////////////////////////////
 
                       SizedBox(
-                        width: 470,
+                        width: cardWidth,
                         child: Container(
                           padding: const EdgeInsets.all(40),
                           decoration: BoxDecoration(

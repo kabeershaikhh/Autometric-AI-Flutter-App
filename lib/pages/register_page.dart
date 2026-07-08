@@ -16,118 +16,245 @@ class RegisterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFDF7FF),
-      body: isWeb
-          ?  WebRegisterLayout(onTap: onTap,)
-          :  AndroidRegisterLayout(onTap: onTap,),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (kIsWeb && constraints.maxWidth >= 950) {
+            return WebRegisterLayout(onTap: onTap);
+          } else {
+            return AndroidRegisterLayout(onTap: onTap);
+          }
+        },
+      ),
     );
   }
 }
-
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
 /// WEB REGISTER LAYOUT
 ////////////////////////////////////////////////////////////
 
 class WebRegisterLayout extends StatelessWidget {
-
   final void Function()? onTap;
-  const WebRegisterLayout({super.key,required this.onTap});
+
+  const WebRegisterLayout({
+    super.key,
+    required this.onTap,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return Row(
+
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final leftWidth = (screenWidth * 0.28).clamp(300.0, 430.0);
+
+    final cardWidth = (screenWidth * 0.34).clamp(380.0, 470.0);
+
+    final gap = (screenWidth * 0.06).clamp(40.0, 150.0);
+
+    final horizontalPadding =
+    (screenWidth * 0.05).clamp(20.0, 70.0);
+
+    return Stack(
       children: [
-        /// LEFT SIDE
-        Expanded(
-          flex: 3,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Image.network(
-                'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1600&auto=format&fit=crop',
-                fit: BoxFit.cover,
-              ),
+        ////////////////////////////////////////////////////
+        /// Background
+        ////////////////////////////////////////////////////
 
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF7C4DFF).withOpacity(0.7),
-                      Colors.transparent,
-                    ],
-                    begin: Alignment.bottomLeft,
-                    end: Alignment.topRight,
-                  ),
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(48),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    glassCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'Join AutoMetric AI',
-                            style: TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          SizedBox(height: 12),
-                          Text(
-                            'Create your account and unlock intelligent car valuation insights.',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: glassSmallCard(
-                            Icons.analytics,
-                            'AI Insights',
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: glassSmallCard(
-                            Icons.security,
-                            'Secure Platform',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF6236FF),
+                Color(0xFF8D6AF8),
+                Color(0xFFD9C5FF),
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
           ),
         ),
 
-        /// RIGHT SIDE
-        Expanded(
-          flex: 2,
-          child: Container(
-            color: Colors.white,
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(40),
-                child: SizedBox(
-                  width: 420,
-                  child: RegisterForm(
-                    mobileMode: false,
-                    onTap: onTap,
+        Positioned(
+          top: -120,
+          right: -80,
+          child: circleDecoration(320),
+        ),
+
+        Positioned(
+          bottom: -140,
+          left: -90,
+          child: circleDecoration(360),
+        ),
+
+        ////////////////////////////////////////////////////
+        /// CONTENT
+        ////////////////////////////////////////////////////
+
+        SafeArea(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top,
+              ),
+              child: Center(
+                child: Padding(
+                  padding:  EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: 40,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      ////////////////////////////////////////////////////
+                      /// LEFT SIDE
+                      ////////////////////////////////////////////////////
+
+                      SizedBox(
+                        width: leftWidth,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 40),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(28),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(.12),
+                                      blurRadius: 25,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Image.asset(
+                                    "assets/AutoMetricAI.png",
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 30),
+
+                              const Text(
+                                "AutoMetric AI",
+                                style: TextStyle(
+                                  fontSize: 46,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              const Text(
+                                "Smart Car Valuation",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  color: Colors.white70,
+                                ),
+                              ),
+
+                              const SizedBox(height: 45),
+
+                              const Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    "AI Powered Analysis",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              const Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    "Accurate Car Valuation",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              const Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    "Evaluation History",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                       SizedBox(width: gap),
+
+                      ////////////////////////////////////////////////////
+                      /// RIGHT SIDE
+                      ////////////////////////////////////////////////////
+
+                      SizedBox(
+                        width: cardWidth,
+                        child: Container(
+                          padding: const EdgeInsets.all(40),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(32),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(.08),
+                                blurRadius: 30,
+                                offset: const Offset(0, 12),
+                              ),
+                            ],
+                          ),
+                          child: RegisterForm(
+                            mobileMode: false,
+                            onTap: onTap,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -138,7 +265,6 @@ class WebRegisterLayout extends StatelessWidget {
     );
   }
 }
-
 ////////////////////////////////////////////////////////////
 /// ANDROID REGISTER LAYOUT
 ////////////////////////////////////////////////////////////

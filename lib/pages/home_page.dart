@@ -1,25 +1,37 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../auth/auth_service.dart';
+import 'homePageLayouts/android_home_layout.dart';
+import 'homePageLayouts/web_home_layout.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  HomePage({super.key});
 
-  void logout(){
-    final _authService = AuthService();
+  final AuthService _authService = AuthService();
+
+  void logout() {
     _authService.signOut();
   }
+
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-      appBar: AppBar(
-        title: Text("Home"),
-        actions: [
-            IconButton(onPressed: logout, icon: Icon(Icons.logout)
-            ),
-        ],
-      ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFFDF7FF),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
 
+          if (kIsWeb && constraints.maxWidth >= 950) {
+            return WebHomeLayout(
+              onLogout: logout,
+            );
+          }
+
+          return AndroidHomeLayout(
+            onLogout: logout,
+          );
+        },
+      ),
     );
   }
 }
