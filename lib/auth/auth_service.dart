@@ -39,6 +39,7 @@ class AuthService{
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'name': name,
         'email': email,
+        'photoBase64': '', // empty until user uploads a photo
       });
       
       return  userCredential;
@@ -58,6 +59,28 @@ class AuthService{
       throw Exception(e.code);
     }
   }
+
+  /// Change password in-app.
+  /// Re-authenticates with [currentPassword], then updates to [newPassword].
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      throw Exception('No user signed in');
+    }
+
+    // Re-authenticate first (required by Firebase for sensitive operations)
+    final credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: currentPassword,
+    );
+    await user.reauthenticateWithCredential(credential);
+
+    // Now update the password
+    await user.updatePassword(newPassword);
+  }
+
+  /// Current user's email (for sending reset link from settings).
+  String? get currentUserEmail => _auth.currentUser?.email;
 
 
     //sign out

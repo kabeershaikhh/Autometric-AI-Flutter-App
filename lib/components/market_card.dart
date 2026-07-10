@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_colors.dart';
+
+/// Market outlook stats card for the home page.
+/// Shared between Android and Web layouts.
 class MarketCard extends StatelessWidget {
   const MarketCard({super.key});
 
@@ -17,13 +21,13 @@ class MarketCard extends StatelessWidget {
             Color(0xFFF8F5FF),
           ],
         ),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: const Color(0xFFD8C9FF),
+          color: AppColors.primaryBorder,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C4DFF).withOpacity(.10),
+            color: AppColors.primary.withOpacity(.08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -41,12 +45,12 @@ class MarketCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(11),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
                   Icons.trending_up,
-                  color: Color(0xFF7C4DFF),
+                  color: AppColors.primary,
                   size: 26,
                 ),
               ),
@@ -62,14 +66,14 @@ class MarketCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2A2342),
+                        color: AppColors.textDark,
                       ),
                     ),
                     SizedBox(height: 4),
                     Text(
                       "Updated Today",
                       style: TextStyle(
-                        color: Color(0xFF7B7198),
+                        color: AppColors.textGrey,
                         fontSize: 13,
                       ),
                     ),
@@ -86,19 +90,19 @@ class MarketCard extends StatelessWidget {
                   color: Colors.green.shade50,
                   borderRadius: BorderRadius.circular(30),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.arrow_upward,
-                      color: Colors.green,
+                      color: AppColors.success,
                       size: 16,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
                       "2.8%",
                       style: TextStyle(
-                        color: Colors.green,
+                        color: AppColors.success,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -117,7 +121,7 @@ class MarketCard extends StatelessWidget {
           const Text(
             "Used car prices remain stable this week with increased demand for SUVs and hatchbacks across major Pakistani cities.",
             style: TextStyle(
-              color: Color(0xFF5F5874),
+              color: AppColors.textLight,
               height: 1.6,
               fontSize: 14,
             ),
@@ -129,8 +133,8 @@ class MarketCard extends StatelessWidget {
           /// STATS
           //////////////////////////////////////////////////////
 
-          Row(
-            children: const [
+          const Row(
+            children: [
               Expanded(
                 child: _InfoTile(
                   icon: Icons.location_on_outlined,
@@ -179,12 +183,12 @@ class _InfoTile extends StatelessWidget {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Icon(
             icon,
-            color: const Color(0xFF7C4DFF),
+            color: AppColors.primary,
             size: 22,
           ),
         ),
@@ -196,7 +200,7 @@ class _InfoTile extends StatelessWidget {
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,
-            color: Color(0xFF2A2342),
+            color: AppColors.textDark,
           ),
         ),
 
@@ -205,7 +209,7 @@ class _InfoTile extends StatelessWidget {
         Text(
           title,
           style: const TextStyle(
-            color: Color(0xFF7B7198),
+            color: AppColors.textGrey,
             fontSize: 13,
           ),
         ),

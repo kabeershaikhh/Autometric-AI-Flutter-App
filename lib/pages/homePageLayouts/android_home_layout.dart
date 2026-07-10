@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../components/feature_card.dart';
@@ -5,29 +6,50 @@ import '../../components/home_app_bar.dart';
 import '../../components/home_bottom_nav.dart';
 import '../../components/home_drawer.dart';
 import '../../components/market_card.dart';
+import '../../components/recent_tile.dart';
+import '../../constants/app_colors.dart';
+import '../../servers/user_service.dart';
 
+/// Android / mobile home layout.
+///
+/// Structure:
+///   ┌─ Purple curved header (AppBar + Welcome) ─┐
+///   │                                            │
+///   ├─ Scrollable body (light bg)               │
+///   │   • Market Card                            │
+///   │   • Quick Actions (FeatureCards)            │
+///   │   • Recent Evaluations (from Firestore)    │
+///   ├─ Bottom Navigation Bar                     │
+///   └─ End Drawer                                │
 class AndroidHomeLayout extends StatefulWidget {
   final VoidCallback onLogout;
-  const AndroidHomeLayout({super.key, required this.onLogout});
+  final String userName;
+  final String userEmail;
+  final String? photoBase64;
+  final UserService userService;
+
+  const AndroidHomeLayout({
+    super.key,
+    required this.onLogout,
+    required this.userName,
+    required this.userEmail,
+    this.photoBase64,
+    required this.userService,
+  });
 
   @override
   State<AndroidHomeLayout> createState() => _AndroidHomeLayoutState();
 }
 
 class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
-
   int selectedIndex = 0;
-
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       key: scaffoldKey,
-
-      backgroundColor: const Color(0xFFFDF7FF),
+      backgroundColor: AppColors.scaffoldBg,
 
       ///////////////////////////////////////////////////////
       /// DRAWER
@@ -37,47 +59,81 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
         onLogout: () {
           Navigator.pop(context);
           widget.onLogout();
-
-          // TODO: Logout
         },
+        userName: widget.userName,
+        userEmail: widget.userEmail,
+        photoBase64: widget.photoBase64,
+        userService: widget.userService,
       ),
 
       ///////////////////////////////////////////////////////
       /// BODY
       ///////////////////////////////////////////////////////
 
-      body: Stack(
-        children: [
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
-          /////////////////////////////////////////////////////
-          /// BACKGROUND
-          /////////////////////////////////////////////////////
+            /////////////////////////////////////////////////////
+            /// PURPLE HEADER (AppBar + Welcome)
+            /////////////////////////////////////////////////////
 
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-            ),
-          ),
+            _buildHeader(),
 
-          SafeArea(
-            child: SingleChildScrollView(
+            /////////////////////////////////////////////////////
+            /// CONTENT BODY
+            /////////////////////////////////////////////////////
 
-              padding: const EdgeInsets.all(20),
-
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
               child: Column(
-
                 crossAxisAlignment: CrossAxisAlignment.start,
-
                 children: [
 
                   /////////////////////////////////////////////////////
-                  /// APP BAR
+                  /// SECTION TITLE — Quick Actions
                   /////////////////////////////////////////////////////
 
-                  HomeAppBar(
-                    onProfileTap: () {
-                      scaffoldKey.currentState!.openEndDrawer();
-                    },
+                  const Text(
+                    "Quick Actions",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  /////////////////////////////////////////////////////
+                  /// FEATURE CARDS (reusable component)
+                  /////////////////////////////////////////////////////
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 180,
+                          child: FeatureCard(
+                            icon: Icons.analytics_outlined,
+                            title: "Predict\nPrice",
+                            onTap: () {},
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: SizedBox(
+                          height: 180,
+                          child: FeatureCard(
+                            icon: Icons.car_crash_outlined,
+                            title: "Damage\nDetection",
+                            onTap: () {},
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 28),
@@ -91,92 +147,32 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                   const SizedBox(height: 28),
 
                   /////////////////////////////////////////////////////
-                  /// SECTION TITLE
-                  /////////////////////////////////////////////////////
-
-                  const Text(
-                    "Quick Actions",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  /////////////////////////////////////////////////////
-                  /// FEATURE CARDS
-                  /////////////////////////////////////////////////////
-
-                  Row(
-                    children: [
-
-                      Expanded(
-                        child: SizedBox(
-                          height: 200,
-                          child: FeatureCard(
-                            icon: Icons.analytics_outlined,
-                            title: "Predict Price",
-                            onTap: () {},
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 16),
-
-                      Expanded(
-                        child: SizedBox(
-                          height: 200,
-                          child: FeatureCard(
-                            icon: Icons.car_crash_outlined,
-                            title: "Damage Detection",
-                            onTap: () {},
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  /////////////////////////////////////////////////////
-                  /// RECENT
+                  /// SECTION TITLE — Recent Evaluations
                   /////////////////////////////////////////////////////
 
                   const Text(
                     "Recent Evaluations",
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  recentTile(
-                    "Honda Civic 2020",
-                    "PKR 4,150,000",
-                    Icons.directions_car,
-                  ),
+                  /////////////////////////////////////////////////////
+                  /// EVALUATIONS LIST (from Firestore)
+                  /////////////////////////////////////////////////////
 
-                  recentTile(
-                    "Toyota Corolla GLi",
-                    "PKR 3,450,000",
-                    Icons.directions_car,
-                  ),
+                  _buildEvaluationsList(),
 
-                  recentTile(
-                    "Suzuki Alto VXL",
-                    "PKR 2,250,000",
-                    Icons.directions_car,
-                  ),
-
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
 
       ///////////////////////////////////////////////////////
@@ -186,26 +182,21 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
       bottomNavigationBar: HomeBottomNav(
         currentIndex: selectedIndex,
         onTap: (index) {
-
           setState(() {
             selectedIndex = index;
           });
 
           switch (index) {
-
             case 0:
               break;
-
             case 1:
-            // TODO Predict Page
+              // TODO Predict Page
               break;
-
             case 2:
-            // TODO Damage Page
+              // TODO Damage Page
               break;
-
             case 3:
-            // TODO History Page
+              // TODO History Page
               break;
           }
         },
@@ -214,40 +205,160 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
   }
 
   ///////////////////////////////////////////////////////
-  /// RECENT TILE
+  /// PURPLE CURVED HEADER
   ///////////////////////////////////////////////////////
 
-  Widget recentTile(
-      String title,
-      String price,
-      IconData icon,
-      ) {
-    return Card(
-
-      elevation: 2,
-
-      margin: const EdgeInsets.only(bottom: 12),
-
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
+  Widget _buildHeader() {
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(32),
+        bottomRight: Radius.circular(32),
       ),
-
-      child: ListTile(
-
-        leading: CircleAvatar(
-          backgroundColor: const Color(0xFF7C4DFF).withOpacity(.12),
-          child: Icon(
-            icon,
-            color: const Color(0xFF7C4DFF),
-          ),
+      child: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: AppColors.headerGradient,
         ),
+        child: Stack(
+          children: [
+            // Subtle decorative circles
+            Positioned(
+              top: -40,
+              right: -30,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.06),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -30,
+              left: -20,
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.06),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -40,
+              right: 75,
+              child: Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.06),
+                ),
+              ),
+            ),
 
-        title: Text(title),
+            // Content
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-        subtitle: Text(price),
+                    /// AppBar Row
+                    HomeAppBar(
+                      onProfileTap: () {
+                        scaffoldKey.currentState!.openEndDrawer();
+                      },
+                      photoBase64: widget.photoBase64,
+                    ),
 
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    const SizedBox(height: 24),
+
+                    /// Welcome Greeting
+                    Text(
+                      "Welcome back,",
+                      style: TextStyle(
+                        color: AppColors.white.withValues(alpha: 0.8),
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "${widget.userName}! 👋",
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Let's evaluate your car today",
+                      style: TextStyle(
+                        color: AppColors.white.withValues(alpha: 0.65),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  ///////////////////////////////////////////////////////
+  /// EVALUATIONS LIST — REAL-TIME FROM FIRESTORE
+  ///////////////////////////////////////////////////////
+
+  Widget _buildEvaluationsList() {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: widget.userService.evaluationsStream(),
+      builder: (context, snapshot) {
+        // Loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+                strokeWidth: 2.5,
+              ),
+            ),
+          );
+        }
+
+        // Empty state
+        final docs = snapshot.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return const EmptyEvaluationsCard();
+        }
+
+        // Data state
+        return Column(
+          children: docs.map((doc) {
+            final data = doc.data();
+            final title = data['carName'] as String? ?? 'Unknown Car';
+            final price = data['predictedPrice'] as String? ?? '';
+            return RecentTile(
+              title: title,
+              price: price,
+            );
+          }).toList(),
+        );
+      },
     );
   }
 }

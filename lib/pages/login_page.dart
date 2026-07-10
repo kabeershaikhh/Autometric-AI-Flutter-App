@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../auth/auth_service.dart';
 import '../components/my_social_button.dart';
 import '../components/my_textfield.dart';
+import '../constants/app_colors.dart';
 
 
 class LoginPage extends StatelessWidget {
@@ -436,7 +437,7 @@ class _LoginFormState extends State<LoginForm> {
 
   //reset password for user
   void forgotPassword(BuildContext context) {
-    final TextEditingController resetEmailController = TextEditingController();
+    final  resetEmailController = TextEditingController();
 
     showDialog(
       context: context,
@@ -479,7 +480,15 @@ class _LoginFormState extends State<LoginForm> {
                 );
               }
             },
-            child: const Text("Send"),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: const Text("Send",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
