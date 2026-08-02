@@ -27,7 +27,7 @@ class MarketCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(.08),
+            color: AppColors.primary.withValues(alpha: .08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -49,7 +49,7 @@ class MarketCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
-                  Icons.trending_up,
+                  Icons.psychology,
                   color: AppColors.primary,
                   size: 26,
                 ),
@@ -62,7 +62,7 @@ class MarketCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Market Outlook",
+                      "Optuna-Tuned XGBoost",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -71,7 +71,7 @@ class MarketCard extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      "Updated Today",
+                      "Version 3.0.0 (25 Features)",
                       style: TextStyle(
                         color: AppColors.textGrey,
                         fontSize: 13,
@@ -100,7 +100,7 @@ class MarketCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      "2.8%",
+                      "+2.0%",
                       style: TextStyle(
                         color: AppColors.success,
                         fontWeight: FontWeight.bold,
@@ -119,7 +119,7 @@ class MarketCard extends StatelessWidget {
           //////////////////////////////////////////////////////
 
           const Text(
-            "Used car prices remain stable this week with increased demand for SUVs and hatchbacks across major Pakistani cities.",
+            "The upgraded XGBoost model, optimized with Optuna, demonstrates robust reliability with an 86.45% R² Score on unseen test data.",
             style: TextStyle(
               color: AppColors.textLight,
               height: 1.6,
@@ -137,23 +137,23 @@ class MarketCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _InfoTile(
-                  icon: Icons.location_on_outlined,
-                  value: "15+",
-                  title: "Cities",
+                  icon: Icons.track_changes,
+                  value: "86.5%",
+                  title: "R² Score",
                 ),
               ),
               Expanded(
                 child: _InfoTile(
-                  icon: Icons.directions_car_outlined,
-                  value: "10k+",
-                  title: "Cars",
+                  icon: Icons.attach_money,
+                  value: "3.3L",
+                  title: "MAE",
                 ),
               ),
               Expanded(
                 child: _InfoTile(
-                  icon: Icons.analytics_outlined,
-                  value: "98%",
-                  title: "Predictions",
+                  icon: Icons.trending_down,
+                  value: "10.0%",
+                  title: "MAPE",
                 ),
               ),
             ],

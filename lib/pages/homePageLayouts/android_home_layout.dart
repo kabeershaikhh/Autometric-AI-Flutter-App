@@ -9,6 +9,7 @@ import '../../components/market_card.dart';
 import '../../components/recent_tile.dart';
 import '../../constants/app_colors.dart';
 import '../../servers/user_service.dart';
+import '../predict_page.dart';
 
 /// Android / mobile home layout.
 ///
@@ -118,7 +119,20 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                           child: FeatureCard(
                             icon: Icons.analytics_outlined,
                             title: "Predict\nPrice",
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PredictPage(
+                                    userName: widget.userName,
+                                    userEmail: widget.userEmail,
+                                    photoBase64: widget.photoBase64,
+                                    userService: widget.userService,
+                                    onLogout: widget.onLogout,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),
@@ -190,7 +204,23 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
             case 0:
               break;
             case 1:
-              // TODO Predict Page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PredictPage(
+                    userName: widget.userName,
+                    userEmail: widget.userEmail,
+                    photoBase64: widget.photoBase64,
+                    userService: widget.userService,
+                    onLogout: widget.onLogout,
+                  ),
+                ),
+              ).then((_) {
+                // Reset bottom nav to Dashboard when returning
+                setState(() {
+                  selectedIndex = 0;
+                });
+              });
               break;
             case 2:
               // TODO Damage Page

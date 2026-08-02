@@ -10,6 +10,7 @@ import '../../components/recent_tile.dart';
 import '../../components/web_sidebar.dart';
 import '../../constants/app_colors.dart';
 import '../../servers/user_service.dart';
+import '../predict_page.dart';
 
 /// Web dashboard home layout (displayed when kIsWeb && width >= 950).
 ///
@@ -90,8 +91,41 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
               setState(() {
                 selectedIndex = index;
               });
+              
+              if (index == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PredictPage(
+                      userName: widget.userName,
+                      userEmail: widget.userEmail,
+                      photoBase64: widget.photoBase64,
+                      userService: widget.userService,
+                      onLogout: widget.onLogout,
+                    ),
+                  ),
+                ).then((_) {
+                  // Reset selection back to Dashboard when we return
+                  setState(() {
+                    selectedIndex = 0;
+                  });
+                });
+              }
             },
-            onLogout: widget.onLogout,
+            onLogout: () async {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              );
+              await Future.delayed(const Duration(milliseconds: 600));
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+              widget.onLogout();
+            },
             onProfileTap: _openProfileDrawer,
             photoBase64: widget.photoBase64,
           ),
@@ -295,7 +329,20 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                 child: FeatureCard(
                   icon: Icons.analytics_outlined,
                   title: "Predict\nPrice",
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PredictPage(
+                          userName: widget.userName,
+                          userEmail: widget.userEmail,
+                          photoBase64: widget.photoBase64,
+                          userService: widget.userService,
+                          onLogout: widget.onLogout,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),

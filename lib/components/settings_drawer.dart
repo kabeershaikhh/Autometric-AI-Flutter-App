@@ -16,11 +16,12 @@ class SettingsDrawer extends StatelessWidget {
       backgroundColor: AppColors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(28),
+          // topLeft: Radius.circular(28),
           bottomLeft: Radius.circular(28),
         ),
       ),
       child: SafeArea(
+        top: false,
         child: Column(
           children: [
             //////////////////////////////////////
@@ -53,7 +54,7 @@ class SettingsDrawer extends StatelessWidget {
 
                     // Content with inner padding
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                      padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
                       child: Column(
                         children: [
                           // Back button row
@@ -340,72 +341,98 @@ class SettingsDrawer extends StatelessWidget {
       return;
     }
 
-    // Confirm before sending
-    final shouldSend = await showDialog<bool>(
+    showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        title: const Text(
-          "Send Reset Link",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
-          ),
-        ),
-        content: Text(
-          "A password reset link will be sent to:\n\n$email\n\nYou'll be signed out after the link is sent.",
-          style: const TextStyle(height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: AppColors.textGrey),
-            ),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
+      barrierDismissible: false,
+      builder: (ctx) {
+        bool isSending = false;
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(24),
               ),
-            ),
-            child: const Text("Send Link"),
-          ),
-        ],
-      ),
+              title: const Text(
+                "Send Reset Link",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+              content: Text(
+                "A password reset link will be sent to:\n\n$email\n\nYou'll be signed out after the link is sent.",
+                style: const TextStyle(height: 1.5),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSending ? null : () => Navigator.pop(ctx),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: AppColors.textGrey),
+                  ),
+                ),
+                FilledButton(
+                  onPressed: isSending
+                      ? null
+                      : () async {
+                          setDialogState(() {
+                            isSending = true;
+                          });
+                          try {
+                            await authService.sendPasswordResetEmail(email);
+                            if (context.mounted) {
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      "Reset link sent to $email. Signing you out..."),
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: AppColors.primary,
+                                ),
+                              );
+                              await authService.signOut();
+                            }
+                          } catch (e) {
+                            if (ctx.mounted) {
+                              Navigator.pop(ctx);
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(e.toString()),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (ctx.mounted) {
+                              setDialogState(() {
+                                isSending = false;
+                              });
+                            }
+                          }
+                        },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: isSending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text("Send Link"),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
-
-    if (shouldSend != true) return;
-
-    try {
-      await authService.sendPasswordResetEmail(email);
-      if (context.mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Reset link sent to $email. Signing you out..."),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.primary,
-          ),
-        );
-        await authService.signOut();
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Failed to send reset link. Please try again."),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
   }
 }
 

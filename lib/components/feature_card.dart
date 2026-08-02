@@ -19,27 +19,31 @@ class FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(28),
-      child: InkWell(
+    return Container(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        onTap: onTap,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.25),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(28),
         child: Ink(
           decoration: BoxDecoration(
             gradient: AppColors.primaryGradient,
             borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.25),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
           ),
-          child: ClipRRect(
+          child: InkWell(
             borderRadius: BorderRadius.circular(28),
-            child: Stack(
+            onTap: onTap,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: Stack(
               children: [
                 // Subtle decorative circles
                 Positioned(
@@ -119,6 +123,7 @@ class FeatureCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

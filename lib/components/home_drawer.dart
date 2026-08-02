@@ -220,7 +220,20 @@ class HomeDrawer extends StatelessWidget {
               title: "Logout",
               iconColor: AppColors.error,
               textColor: AppColors.error,
-              onTap: onLogout,
+              onTap: () async {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
+                );
+                await Future.delayed(const Duration(milliseconds: 600));
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+                onLogout();
+              },
             ),
 
             const SizedBox(height: 12),
@@ -269,7 +282,22 @@ class HomeDrawer extends StatelessWidget {
         return;
       }
 
+      // Show loading dialog
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
+        );
+      }
+
       await userService.updateProfilePhoto(bytes);
+
+      if (context.mounted) {
+        Navigator.pop(context); // close loading dialog
+      }
 
       if (context.mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
@@ -298,52 +326,80 @@ class HomeDrawer extends StatelessWidget {
   void _confirmDeletePhoto(BuildContext context) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        title: const Text(
-          "Remove Photo",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
-          ),
-        ),
-        content: const Text(
-          "Are you sure you want to remove your profile picture?",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: AppColors.textGrey),
-            ),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await userService.deleteProfilePhoto();
-              if (context.mounted) {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Profile photo removed."),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
+      builder: (ctx) {
+        bool isRemoving = false;
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(24),
               ),
-            ),
-            child: const Text("Remove"),
-          ),
-        ],
-      ),
+              title: const Text(
+                "Remove Photo",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+              content: const Text(
+                "Are you sure you want to remove your profile picture?",
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isRemoving ? null : () => Navigator.pop(ctx),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: AppColors.textGrey),
+                  ),
+                ),
+                FilledButton(
+                  onPressed: isRemoving
+                      ? null
+                      : () async {
+                          setDialogState(() {
+                            isRemoving = true;
+                          });
+                          try {
+                            await userService.deleteProfilePhoto();
+                            if (context.mounted) {
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Profile photo removed."),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (ctx.mounted) {
+                              setDialogState(() {
+                                isRemoving = false;
+                              });
+                            }
+                          }
+                        },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: isRemoving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text("Remove"),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -353,78 +409,109 @@ class HomeDrawer extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        title: const Text(
-          "Change Name",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
-          ),
-        ),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            hintText: "Enter your name",
-            prefixIcon: const Icon(Icons.person_outline),
-            filled: true,
-            fillColor: AppColors.primarySurface,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 2,
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: AppColors.textGrey),
-            ),
-          ),
-          FilledButton(
-            onPressed: () async {
-              final newName = controller.text.trim();
-              if (newName.isNotEmpty && newName != userName) {
-                await userService.updateUserName(newName);
-                if (context.mounted) {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Name updated successfully! ✓"),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: AppColors.primary,
-                    ),
-                  );
-                }
-              } else {
-                if (ctx.mounted) Navigator.pop(ctx);
-              }
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
+      builder: (ctx) {
+        bool isSaving = false;
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(24),
               ),
-            ),
-            child: const Text("Save",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+              title: const Text(
+                "Change Name",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+              content: TextField(
+                controller: controller,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(
+                  hintText: "Enter your name",
+                  prefixIcon: const Icon(Icons.person_outline),
+                  filled: true,
+                  fillColor: AppColors.primarySurface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: AppColors.primary,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSaving ? null : () => Navigator.pop(ctx),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: AppColors.textGrey),
+                  ),
+                ),
+                FilledButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          final newName = controller.text.trim();
+                          if (newName.isNotEmpty && newName != userName) {
+                            setDialogState(() {
+                              isSaving = true;
+                            });
+                            try {
+                              await userService.updateUserName(newName);
+                              if (context.mounted) {
+                                Navigator.of(context)
+                                    .popUntil((route) => route.isFirst);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Name updated successfully! ✓"),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: AppColors.primary,
+                                  ),
+                                );
+                              }
+                            } finally {
+                              if (ctx.mounted) {
+                                setDialogState(() {
+                                  isSaving = false;
+                                });
+                              }
+                            }
+                          } else {
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          }
+                        },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "Save",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

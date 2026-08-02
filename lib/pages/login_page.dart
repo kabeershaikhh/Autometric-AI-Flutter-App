@@ -416,22 +416,34 @@ class _LoginFormState extends State<LoginForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _pwdController = TextEditingController();
 
-  void login(BuildContext context) async{
+  bool isLoading = false;
+
+  void login(BuildContext context) async {
     final authService = AuthService();
 
-    try{
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
       await authService.signInWithEmailAndPassword(
           _emailController.text,
           _pwdController.text);
-    }
-    //catch any errors
-    catch(e){
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-        title: Text(e.toString()),
-        ),
-      );
+    } catch (e) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(e.toString()),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -441,57 +453,87 @@ class _LoginFormState extends State<LoginForm> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Reset Password"),
-        content: MyTextField(
-            controller: resetEmailController,
-            hint: "Enter your email",
-            icon: Icons.email_outlined,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () async {
-              try {
-                await AuthService().sendPasswordResetEmail(
-                  resetEmailController.text,
-                );
+      builder: (context) {
+        bool isResetting = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text("Reset Password"),
+              content: MyTextField(
+                controller: resetEmailController,
+                hint: "Enter your email",
+                icon: Icons.email_outlined,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isResetting ? null : () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: isResetting
+                      ? null
+                      : () async {
+                          setDialogState(() {
+                            isResetting = true;
+                          });
+                          try {
+                            await AuthService().sendPasswordResetEmail(
+                              resetEmailController.text,
+                            );
 
-                Navigator.pop(context);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      "Password reset email sent.",
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "Password reset email sent.",
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(e.toString()),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (context.mounted) {
+                              setDialogState(() {
+                                isResetting = false;
+                              });
+                            }
+                          }
+                        },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                );
-              } catch (e) {
-                Navigator.pop(context);
-
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(e.toString()),
-                  ),
-                );
-              }
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: const Text("Send",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+                  child: isResetting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "Send",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -589,23 +631,30 @@ class _LoginFormState extends State<LoginForm> {
               ),
               elevation: 8,
             ),
-            onPressed: (){
-              login(context);
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Sign In',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            onPressed: isLoading ? null : () => login(context),
+            child: isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Sign In',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward),
+                    ],
                   ),
-                ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward),
-              ],
-            ),
           ),
         ),
 

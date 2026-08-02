@@ -415,38 +415,46 @@ class _RegisterFormState extends State<RegisterForm> {
   final TextEditingController _pwdController = TextEditingController();
   final TextEditingController _confirmPwdController = TextEditingController();
 
+  bool isLoading = false;
+
   // register method
-  void register(BuildContext context) async{
-
-    //get auth service
+  void register(BuildContext context) async {
     final _authService = AuthService();
-    //if passwords match create user
-   if(_pwdController.text == _confirmPwdController.text) {
-     try{
-      await _authService.signUpWithEmailAndPassword(
-         _nameController.text.trim(),
-         _emailController.text.trim(),
-         _pwdController.text,
-       );
-     } catch (e){
-       showDialog(
-         context: context,
-         builder: (context) => AlertDialog(
-           title: Text(e.toString()),
-         ),
-       );
-     }
-   }
 
-   //if password doesnt match tell user to fix
-   else{
-     showDialog(
-       context: context,
-       builder: (context) => const AlertDialog(
-         title: Text("Passwords do not match."),
-       ),
-     );
-   }
+    if (_pwdController.text == _confirmPwdController.text) {
+      setState(() {
+        isLoading = true;
+      });
+      try {
+        await _authService.signUpWithEmailAndPassword(
+          _nameController.text.trim(),
+          _emailController.text.trim(),
+          _pwdController.text,
+        );
+      } catch (e) {
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(e.toString()),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          title: Text("Passwords do not match."),
+        ),
+      );
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -553,23 +561,30 @@ class _RegisterFormState extends State<RegisterForm> {
               ),
               elevation: 8,
             ),
-            onPressed: () {
-              register(context);
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Create Account',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            onPressed: isLoading ? null : () => register(context),
+            child: isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Create Account',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward),
+                    ],
                   ),
-                ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward),
-              ],
-            ),
           ),
         ),
 
