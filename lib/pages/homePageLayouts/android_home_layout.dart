@@ -9,6 +9,7 @@ import '../../components/market_card.dart';
 import '../../components/recent_tile.dart';
 import '../../constants/app_colors.dart';
 import '../../servers/user_service.dart';
+import '../history_page.dart';
 import '../predict_page.dart';
 
 /// Android / mobile home layout.
@@ -143,7 +144,7 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                           child: FeatureCard(
                             icon: Icons.car_crash_outlined,
                             title: "Damage\nDetection",
-                            onTap: () {},
+                            onTap: () => _showFeatureNotAvailableSnackBar(context),
                           ),
                         ),
                       ),
@@ -164,16 +165,51 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                   /// SECTION TITLE — Recent Evaluations
                   /////////////////////////////////////////////////////
 
-                  const Text(
-                    "Recent Evaluations",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Recent Evaluations",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HistoryPage(
+                                userName: widget.userName,
+                                userEmail: widget.userEmail,
+                                photoBase64: widget.photoBase64,
+                                userService: widget.userService,
+                                onLogout: widget.onLogout,
+                              ),
+                            ),
+                          );
+                        },
+                        iconAlignment: IconAlignment.end,
+                        icon: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 13,
+                          color: AppColors.primary,
+                        ),
+                        label: const Text(
+                          "See All",
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   /////////////////////////////////////////////////////
                   /// EVALUATIONS LIST (from Firestore)
@@ -202,8 +238,14 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
 
           switch (index) {
             case 0:
+              setState(() {
+                selectedIndex = 0;
+              });
               break;
             case 1:
+              setState(() {
+                selectedIndex = 1;
+              });
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -223,13 +265,45 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
               });
               break;
             case 2:
-              // TODO Damage Page
+              setState(() {
+                selectedIndex = 0;
+              });
+              _showFeatureNotAvailableSnackBar(context);
               break;
             case 3:
-              // TODO History Page
+              setState(() {
+                selectedIndex = 3;
+              });
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HistoryPage(
+                    userName: widget.userName,
+                    userEmail: widget.userEmail,
+                    photoBase64: widget.photoBase64,
+                    userService: widget.userService,
+                    onLogout: widget.onLogout,
+                  ),
+                ),
+              ).then((_) {
+                setState(() {
+                  selectedIndex = 0;
+                });
+              });
               break;
           }
         },
+      ),
+    );
+  }
+
+  void _showFeatureNotAvailableSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Feature is currently not available"),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
       ),
     );
   }
@@ -376,15 +450,30 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
           return const EmptyEvaluationsCard();
         }
 
-        // Data state
+        // Data state — limit to 3 recent items for concise preview
+        final recentDocs = docs.take(3).toList();
         return Column(
-          children: docs.map((doc) {
+          children: recentDocs.map((doc) {
             final data = doc.data();
             final title = data['carName'] as String? ?? 'Unknown Car';
             final price = data['predictedPrice'] as String? ?? '';
             return RecentTile(
               title: title,
               price: price,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HistoryPage(
+                      userName: widget.userName,
+                      userEmail: widget.userEmail,
+                      photoBase64: widget.photoBase64,
+                      userService: widget.userService,
+                      onLogout: widget.onLogout,
+                    ),
+                  ),
+                );
+              },
             );
           }).toList(),
         );

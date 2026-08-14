@@ -10,6 +10,7 @@ import '../../components/recent_tile.dart';
 import '../../components/web_sidebar.dart';
 import '../../constants/app_colors.dart';
 import '../../servers/user_service.dart';
+import '../history_page.dart';
 import '../predict_page.dart';
 
 /// Web dashboard home layout (displayed when kIsWeb && width >= 950).
@@ -88,11 +89,14 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
           WebSidebar(
             selectedIndex: selectedIndex,
             onItemTap: (index) {
-              setState(() {
-                selectedIndex = index;
-              });
-              
-              if (index == 1) {
+              if (index == 0) {
+                setState(() {
+                  selectedIndex = 0;
+                });
+              } else if (index == 1) {
+                setState(() {
+                  selectedIndex = 1;
+                });
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -106,6 +110,31 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                   ),
                 ).then((_) {
                   // Reset selection back to Dashboard when we return
+                  setState(() {
+                    selectedIndex = 0;
+                  });
+                });
+              } else if (index == 2) {
+                setState(() {
+                  selectedIndex = 0;
+                });
+                _showFeatureNotAvailableSnackBar(context);
+              } else if (index == 3) {
+                setState(() {
+                  selectedIndex = 3;
+                });
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HistoryPage(
+                      userName: widget.userName,
+                      userEmail: widget.userEmail,
+                      photoBase64: widget.photoBase64,
+                      userService: widget.userService,
+                      onLogout: widget.onLogout,
+                    ),
+                  ),
+                ).then((_) {
                   setState(() {
                     selectedIndex = 0;
                   });
@@ -193,13 +222,48 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                         /// RECENT EVALUATIONS
                         /////////////////////////////////////////////////////
 
-                        const Text(
-                          "Recent Evaluations",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Recent Evaluations",
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HistoryPage(
+                                      userName: widget.userName,
+                                      userEmail: widget.userEmail,
+                                      photoBase64: widget.photoBase64,
+                                      userService: widget.userService,
+                                      onLogout: widget.onLogout,
+                                    ),
+                                  ),
+                                );
+                              },
+                              iconAlignment: IconAlignment.end,
+                              icon: const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 14,
+                                color: AppColors.primary,
+                              ),
+                              label: const Text(
+                                "See All",
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
 
                         const SizedBox(height: 18),
@@ -353,13 +417,24 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                 child: FeatureCard(
                   icon: Icons.car_crash_outlined,
                   title: "Damage\nDetection",
-                  onTap: () {},
+                  onTap: () => _showFeatureNotAvailableSnackBar(context),
                 ),
               ),
             ),
           ],
         ),
       ],
+    );
+  }
+
+  void _showFeatureNotAvailableSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Feature is currently not available"),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 
@@ -390,17 +465,32 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
           return const EmptyEvaluationsCard();
         }
 
-        // Data state — show in a constrained width for readability
+        // Data state — limit to 3 recent items for concise preview
+        final recentDocs = docs.take(3).toList();
         return ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700),
           child: Column(
-            children: docs.map((doc) {
+            children: recentDocs.map((doc) {
               final data = doc.data();
               final title = data['carName'] as String? ?? 'Unknown Car';
               final price = data['predictedPrice'] as String? ?? '';
               return RecentTile(
                 title: title,
                 price: price,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HistoryPage(
+                        userName: widget.userName,
+                        userEmail: widget.userEmail,
+                        photoBase64: widget.photoBase64,
+                        userService: widget.userService,
+                        onLogout: widget.onLogout,
+                      ),
+                    ),
+                  );
+                },
               );
             }).toList(),
           ),

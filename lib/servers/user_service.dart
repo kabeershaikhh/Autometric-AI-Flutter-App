@@ -88,4 +88,45 @@ class UserService {
         .limit(10)
         .snapshots();
   }
+
+  /// Real-time stream of all user evaluations for the History page.
+  Stream<QuerySnapshot<Map<String, dynamic>>> allEvaluationsStream() {
+    final uid = _uid;
+    if (uid == null) return const Stream.empty();
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('evaluations')
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
+  /// Save a car price evaluation to Firestore under users/{uid}/evaluations
+  Future<void> saveEvaluation(Map<String, dynamic> data) async {
+    final uid = _uid;
+    if (uid == null) throw Exception("User not authenticated.");
+
+    final evaluationDoc = {
+      ...data,
+      'createdAt': FieldValue.serverTimestamp(),
+    };
+
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('evaluations')
+        .add(evaluationDoc);
+  }
+
+  /// Delete a saved evaluation entry by document ID.
+  Future<void> deleteEvaluation(String docId) async {
+    final uid = _uid;
+    if (uid == null) return;
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('evaluations')
+        .doc(docId)
+        .delete();
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../components/prediction_result_dialog.dart';
 import '../constants/app_colors.dart';
 import '../servers/prediction_service.dart';
 import '../servers/user_service.dart';
@@ -84,10 +85,12 @@ class _PredictPageState extends State<PredictPage> {
         isLoadingOptions = false;
       });
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load options. Make sure backend is running.'),
-            backgroundColor: AppColors.error,
+          const SnackBar(
+            content: Text('Failed to load options. Make sure backend is connected.'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3),
           ),
         );
       }
@@ -278,10 +281,12 @@ class _PredictPageState extends State<PredictPage> {
         assembly == null ||
         city == null ||
         mileageController.text.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill all fields!'),
-          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
         ),
       );
       return;
@@ -317,38 +322,20 @@ class _PredictPageState extends State<PredictPage> {
       if (mounted) {
         showDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: AppColors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            title: const Text('Predicted Price', textAlign: TextAlign.center),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.check_circle_outline, color: AppColors.success, size: 64),
-                const SizedBox(height: 16),
-                Text(
-                  result['formatted_price'],
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-            actionsAlignment: MainAxisAlignment.center,
-            actions: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                ),
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Awesome!'),
-              ),
-            ],
+          builder: (ctx) => PredictionResultDialog(
+            formattedPrice: result['formatted_price'],
+            brand: brand,
+            model: model,
+            variant: variant,
+            modelYear: modelYear,
+            engineCc: engineCc,
+            transmission: transmission,
+            bodyType: bodyType,
+            color: color,
+            assembly: assembly,
+            city: city,
+            mileageKm: mileageController.text,
+            userService: widget.userService,
           ),
         );
       }
@@ -357,10 +344,12 @@ class _PredictPageState extends State<PredictPage> {
         isPredicting = false;
       });
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Prediction failed. $e'),
-            backgroundColor: AppColors.error,
+            content: Text('Prediction failed: $e'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
