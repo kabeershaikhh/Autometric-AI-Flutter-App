@@ -47,6 +47,14 @@ class _PredictPageState extends State<PredictPage> {
   bool isPredicting = false;
   String? predictionResult;
 
+  // ── Constraint-aware filtered lists ──
+  List<int> _filteredYears = [];
+  List<int> _filteredEngines = [];
+  List<String> _filteredTransmissions = [];
+  List<String> _filteredAssemblies = [];
+  String? _autoBodyType; // Auto-locked body type from constraints
+  bool _isBodyTypeLocked = false;
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +73,11 @@ class _PredictPageState extends State<PredictPage> {
       setState(() {
         options = opts;
         isLoadingOptions = false;
+        // Initialize with full unfiltered lists
+        _filteredYears = _getIntList('model_years');
+        _filteredEngines = _getIntList('engine_capacities');
+        _filteredTransmissions = _getStringList('transmissions');
+        _filteredAssemblies = _getStringList('assemblies');
       });
     } catch (e) {
       setState(() {
@@ -81,11 +94,155 @@ class _PredictPageState extends State<PredictPage> {
     }
   }
 
+  // ── Helper to extract typed lists from options ──
+  List<int> _getIntList(String key) =>
+      (options[key] as List<dynamic>?)?.map((e) => e as int).toList() ?? [];
+
+  List<String> _getStringList(String key) =>
+      (options[key] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
+
+  // ── Get the constraint map for the currently selected Brand_Model ──
+  Map<String, dynamic>? _getConstraint() {
+    if (brand == null || model == null) return null;
+    final constraints = options['constraints'] as Map<String, dynamic>? ?? {};
+    final key = '${brand}_$model';
+    return constraints[key] as Map<String, dynamic>?;
+  }
+
+  // ── Apply constraints when Brand or Model changes ──
+  void _applyCarConstraints() {
+    final c = _getConstraint();
+    if (c == null) {
+      // No constraints found — reset to full unfiltered lists
+      _filteredYears = _getIntList('model_years');
+      _filteredEngines = _getIntList('engine_capacities');
+      _filteredTransmissions = _getStringList('transmissions');
+      _filteredAssemblies = _getStringList('assemblies');
+      _autoBodyType = null;
+      _isBodyTypeLocked = false;
+      return;
+    }
+
+    // 1. Auto-lock body type
+    _autoBodyType = c['body_type'] as String?;
+    _isBodyTypeLocked = _autoBodyType != null;
+    if (_isBodyTypeLocked) {
+      bodyType = _autoBodyType;
+    }
+
+    // 2. Filter assembly options
+    final assemblyList = (c['assembly'] as List<dynamic>?)?.map((e) => e as String).toList();
+    if (assemblyList != null && assemblyList.isNotEmpty) {
+      _filteredAssemblies = assemblyList;
+      if (assemblyList.length == 1) {
+        assembly = assemblyList.first;
+      } else if (assembly != null && !assemblyList.contains(assembly)) {
+        assembly = null;
+      }
+    } else {
+      _filteredAssemblies = _getStringList('assemblies');
+    }
+
+    // 3. Filter years to only available years for this car
+    final availableYears = (c['available_years'] as List<dynamic>?)?.map((e) => e as int).toList();
+    if (availableYears != null && availableYears.isNotEmpty) {
+      // Show in descending order (newest first)
+      _filteredYears = availableYears.reversed.toList();
+    } else {
+      _filteredYears = _getIntList('model_years');
+    }
+
+    // Clear year-dependent selections if year no longer valid
+    if (modelYear != null && !_filteredYears.contains(modelYear)) {
+      modelYear = null;
+    }
+
+    // 4. Apply year-dependent constraints (engine + transmission)
+    _applyYearConstraints();
+  }
+
+  // ── Apply engine/transmission constraints based on selected year ──
+  void _applyYearConstraints() {
+    final c = _getConstraint();
+    if (c == null || modelYear == null) {
+      // If no constraint or no year selected, show all engines/transmissions for this car
+      if (c != null) {
+        _filteredEngines = (c['all_engines'] as List<dynamic>?)?.map((e) => e as int).toList() ?? _getIntList('engine_capacities');
+        _filteredTransmissions = (c['all_transmissions'] as List<dynamic>?)?.map((e) => e as String).toList() ?? _getStringList('transmissions');
+      } else {
+        _filteredEngines = _getIntList('engine_capacities');
+        _filteredTransmissions = _getStringList('transmissions');
+      }
+      return;
+    }
+
+    final year = modelYear!;
+
+    // Find matching engine range for the selected year
+    final engineByYear = c['engine_by_year'] as Map<String, dynamic>?;
+    if (engineByYear != null) {
+      final ranges = engineByYear['ranges'] as List<dynamic>? ?? [];
+      List<int>? matchedEngines;
+      for (final range in ranges) {
+        final r = range as Map<String, dynamic>;
+        final years = (r['years'] as List<dynamic>).map((e) => e as int).toList();
+        if (years.length == 2 && year >= years[0] && year <= years[1]) {
+          matchedEngines = (r['engines'] as List<dynamic>).map((e) => e as int).toList();
+          break;
+        }
+      }
+      _filteredEngines = matchedEngines ?? (c['all_engines'] as List<dynamic>?)?.map((e) => e as int).toList() ?? _getIntList('engine_capacities');
+    }
+
+    // Find matching transmission range for the selected year
+    final transByYear = c['transmission_by_year'] as Map<String, dynamic>?;
+    if (transByYear != null) {
+      final ranges = transByYear['ranges'] as List<dynamic>? ?? [];
+      List<String>? matchedTrans;
+      for (final range in ranges) {
+        final r = range as Map<String, dynamic>;
+        final years = (r['years'] as List<dynamic>).map((e) => e as int).toList();
+        if (years.length == 2 && year >= years[0] && year <= years[1]) {
+          matchedTrans = (r['transmissions'] as List<dynamic>).map((e) => e as String).toList();
+          break;
+        }
+      }
+      _filteredTransmissions = matchedTrans ?? (c['all_transmissions'] as List<dynamic>?)?.map((e) => e as String).toList() ?? _getStringList('transmissions');
+    }
+
+    // Auto-select if only one option available
+    if (_filteredEngines.length == 1) {
+      engineCc = _filteredEngines.first;
+    } else if (engineCc != null && !_filteredEngines.contains(engineCc)) {
+      engineCc = null;
+    }
+
+    if (_filteredTransmissions.length == 1) {
+      transmission = _filteredTransmissions.first;
+    } else if (transmission != null && !_filteredTransmissions.contains(transmission)) {
+      transmission = null;
+    }
+  }
+
+  // ── Callbacks ──
+
   void _onBrandChanged(String? newBrand) {
     setState(() {
       brand = newBrand;
-      model = null; // Clear dependent fields
+      model = null;
       variant = null;
+      modelYear = null;
+      engineCc = null;
+      transmission = null;
+      bodyType = null;
+      assembly = null;
+      _autoBodyType = null;
+      _isBodyTypeLocked = false;
+      // Reset to full lists when brand changes
+      _filteredYears = _getIntList('model_years');
+      _filteredEngines = _getIntList('engine_capacities');
+      _filteredTransmissions = _getStringList('transmissions');
+      _filteredAssemblies = _getStringList('assemblies');
     });
   }
 
@@ -93,6 +250,19 @@ class _PredictPageState extends State<PredictPage> {
     setState(() {
       model = newModel;
       variant = null;
+      modelYear = null;
+      engineCc = null;
+      transmission = null;
+      // Apply constraints for the new Brand_Model
+      _applyCarConstraints();
+    });
+  }
+
+  void _onModelYearChanged(int? newYear) {
+    setState(() {
+      modelYear = newYear;
+      // Re-apply year-dependent constraints (engine + transmission)
+      _applyYearConstraints();
     });
   }
 
@@ -230,13 +400,19 @@ class _PredictPageState extends State<PredictPage> {
               onBrandChanged: _onBrandChanged,
               onModelChanged: _onModelChanged,
               onVariantChanged: (v) => setState(() => variant = v),
-              onModelYearChanged: (v) => setState(() => modelYear = v),
+              onModelYearChanged: _onModelYearChanged,
               onEngineCcChanged: (v) => setState(() => engineCc = v),
               onTransmissionChanged: (v) => setState(() => transmission = v),
               onBodyTypeChanged: (v) => setState(() => bodyType = v),
               onColorChanged: (v) => setState(() => color = v),
               onAssemblyChanged: (v) => setState(() => assembly = v),
               onCityChanged: (v) => setState(() => city = v),
+              // Constraint-filtered lists
+              filteredYears: _filteredYears,
+              filteredEngines: _filteredEngines,
+              filteredTransmissions: _filteredTransmissions,
+              filteredAssemblies: _filteredAssemblies,
+              isBodyTypeLocked: _isBodyTypeLocked,
             );
           }
 
@@ -261,13 +437,19 @@ class _PredictPageState extends State<PredictPage> {
             onBrandChanged: _onBrandChanged,
             onModelChanged: _onModelChanged,
             onVariantChanged: (v) => setState(() => variant = v),
-            onModelYearChanged: (v) => setState(() => modelYear = v),
+            onModelYearChanged: _onModelYearChanged,
             onEngineCcChanged: (v) => setState(() => engineCc = v),
             onTransmissionChanged: (v) => setState(() => transmission = v),
             onBodyTypeChanged: (v) => setState(() => bodyType = v),
             onColorChanged: (v) => setState(() => color = v),
             onAssemblyChanged: (v) => setState(() => assembly = v),
             onCityChanged: (v) => setState(() => city = v),
+            // Constraint-filtered lists
+            filteredYears: _filteredYears,
+            filteredEngines: _filteredEngines,
+            filteredTransmissions: _filteredTransmissions,
+            filteredAssemblies: _filteredAssemblies,
+            isBodyTypeLocked: _isBodyTypeLocked,
           );
         },
       ),

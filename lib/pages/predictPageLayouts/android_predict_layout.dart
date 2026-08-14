@@ -33,6 +33,13 @@ class AndroidPredictLayout extends StatelessWidget {
   final ValueChanged<String?> onAssemblyChanged;
   final ValueChanged<String?> onCityChanged;
 
+  // Constraint-filtered lists
+  final List<int> filteredYears;
+  final List<int> filteredEngines;
+  final List<String> filteredTransmissions;
+  final List<String> filteredAssemblies;
+  final bool isBodyTypeLocked;
+
   const AndroidPredictLayout({
     super.key,
     required this.isLoadingOptions,
@@ -61,6 +68,11 @@ class AndroidPredictLayout extends StatelessWidget {
     required this.onColorChanged,
     required this.onAssemblyChanged,
     required this.onCityChanged,
+    required this.filteredYears,
+    required this.filteredEngines,
+    required this.filteredTransmissions,
+    required this.filteredAssemblies,
+    required this.isBodyTypeLocked,
   });
 
   @override
@@ -89,12 +101,12 @@ class AndroidPredictLayout extends StatelessWidget {
         ? (variantsByBrandModel[brandModelKey] as List<dynamic>).map((e) => e as String).toList()
         : <String>[];
 
-    final years = (options['model_years'] as List<dynamic>?)?.map((e) => e as int).toList() ?? [];
-    final engines = (options['engine_capacities'] as List<dynamic>?)?.map((e) => e as int).toList() ?? [];
-    final transmissions = (options['transmissions'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
+    final years = filteredYears;
+    final engines = filteredEngines;
+    final transmissions = filteredTransmissions;
     final bodyTypes = (options['body_types'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
     final colors = (options['colors'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
-    final assemblies = (options['assemblies'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
+    final assemblies = filteredAssemblies;
     final cities = (options['cities'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
 
     return Scaffold(
@@ -210,7 +222,7 @@ class AndroidPredictLayout extends StatelessWidget {
 
             Row(
               children: [
-                Expanded(child: _buildDropdown<String>('Body Type', bodyTypes, bodyType, onBodyTypeChanged)),
+                Expanded(child: _buildDropdown<String>('Body Type', bodyTypes, bodyType, onBodyTypeChanged, disabled: isBodyTypeLocked)),
                 const SizedBox(width: 16),
                 Expanded(child: _buildDropdown<String>('Color', colors, color, onColorChanged)),
               ],
@@ -301,9 +313,7 @@ class AndroidPredictLayout extends StatelessWidget {
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
       ),
-      items: disabled 
-          ? [] 
-          : items.map((item) => DropdownMenuItem<T>(
+      items: items.map((item) => DropdownMenuItem<T>(
               value: item,
               child: Text(
                 item.toString(),

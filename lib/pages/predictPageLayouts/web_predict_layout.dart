@@ -43,6 +43,13 @@ class WebPredictLayout extends StatefulWidget {
   final ValueChanged<String?> onAssemblyChanged;
   final ValueChanged<String?> onCityChanged;
 
+  // Constraint-filtered lists
+  final List<int> filteredYears;
+  final List<int> filteredEngines;
+  final List<String> filteredTransmissions;
+  final List<String> filteredAssemblies;
+  final bool isBodyTypeLocked;
+
   const WebPredictLayout({
     super.key,
     required this.userName,
@@ -76,6 +83,11 @@ class WebPredictLayout extends StatefulWidget {
     required this.onColorChanged,
     required this.onAssemblyChanged,
     required this.onCityChanged,
+    required this.filteredYears,
+    required this.filteredEngines,
+    required this.filteredTransmissions,
+    required this.filteredAssemblies,
+    required this.isBodyTypeLocked,
   });
 
   @override
@@ -111,12 +123,12 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
         ? (variantsByBrandModel[brandModelKey] as List<dynamic>).map((e) => e as String).toList()
         : <String>[];
 
-    final years = (widget.options['model_years'] as List<dynamic>?)?.map((e) => e as int).toList() ?? [];
-    final engines = (widget.options['engine_capacities'] as List<dynamic>?)?.map((e) => e as int).toList() ?? [];
-    final transmissions = (widget.options['transmissions'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
+    final years = widget.filteredYears;
+    final engines = widget.filteredEngines;
+    final transmissions = widget.filteredTransmissions;
     final bodyTypes = (widget.options['body_types'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
     final colors = (widget.options['colors'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
-    final assemblies = (widget.options['assemblies'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
+    final assemblies = widget.filteredAssemblies;
     final cities = (widget.options['cities'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [];
 
     return Scaffold(
@@ -211,7 +223,7 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                               children: [
                                 Expanded(child: _buildDropdown<String>('Assembly', assemblies, widget.assembly, widget.onAssemblyChanged)),
                                 const SizedBox(width: 24),
-                                Expanded(child: _buildDropdown<String>('Body Type', bodyTypes, widget.bodyType, widget.onBodyTypeChanged)),
+                                Expanded(child: _buildDropdown<String>('Body Type', bodyTypes, widget.bodyType, widget.onBodyTypeChanged, disabled: widget.isBodyTypeLocked)),
                                 const SizedBox(width: 24),
                                 Expanded(child: _buildDropdown<String>('Color', colors, widget.color, widget.onColorChanged)),
                               ],
@@ -346,9 +358,7 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
       ),
-      items: disabled 
-          ? [] 
-          : items.map((item) => DropdownMenuItem<T>(
+      items: items.map((item) => DropdownMenuItem<T>(
               value: item,
               child: Text(
                 item.toString(),
