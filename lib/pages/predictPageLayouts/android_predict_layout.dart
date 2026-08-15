@@ -115,10 +115,12 @@ class AndroidPredictLayout extends StatelessWidget {
     final years = filteredYears;
     final engines = filteredEngines;
     final transmissions = filteredTransmissions;
-    final bodyTypes = (options['body_types'] as List<dynamic>?)
-            ?.map((e) => e as String)
-            .toList() ??
-        [];
+    final bodyTypes = bodyType != null
+        ? <String>[bodyType!]
+        : ((options['body_types'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            []);
     final colors = (options['colors'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
@@ -352,7 +354,7 @@ class AndroidPredictLayout extends StatelessWidget {
                               items: bodyTypes,
                               selectedValue: bodyType,
                               onChanged: onBodyTypeChanged,
-                              disabled: isBodyTypeLocked,
+                              disabled: model == null,
                               icon: Icons.time_to_leave_rounded,
                             ),
                           ),

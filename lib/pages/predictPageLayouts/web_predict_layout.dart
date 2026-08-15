@@ -140,10 +140,12 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
     final years = widget.filteredYears;
     final engines = widget.filteredEngines;
     final transmissions = widget.filteredTransmissions;
-    final bodyTypes = (widget.options['body_types'] as List<dynamic>?)
-            ?.map((e) => e as String)
-            .toList() ??
-        [];
+    final bodyTypes = widget.bodyType != null
+        ? <String>[widget.bodyType!]
+        : ((widget.options['body_types'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            []);
     final colors = (widget.options['colors'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
@@ -431,7 +433,7 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                                         items: bodyTypes,
                                         selectedValue: widget.bodyType,
                                         onChanged: widget.onBodyTypeChanged,
-                                        disabled: widget.isBodyTypeLocked,
+                                        disabled: widget.model == null,
                                         icon: Icons.time_to_leave_rounded,
                                       ),
                                     ),
