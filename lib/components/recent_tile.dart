@@ -122,7 +122,7 @@ class EmptyEvaluationsCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            "Start by predicting a car's value\nor running a damage detection!",
+            "Start by predicting a car's value\nor setting up a maintenance reminder!",
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textGrey,

@@ -51,9 +51,9 @@ class HomeBottomNav extends StatelessWidget {
           ),
 
           NavigationDestination(
-            icon: Icon(Icons.car_crash_outlined, color: AppColors.textGrey),
-            selectedIcon: Icon(Icons.car_crash, color: AppColors.primary),
-            label: "Damage",
+            icon: Icon(Icons.build_outlined, color: AppColors.textGrey),
+            selectedIcon: Icon(Icons.build, color: AppColors.primary),
+            label: "Maintenance",
           ),
 
           NavigationDestination(

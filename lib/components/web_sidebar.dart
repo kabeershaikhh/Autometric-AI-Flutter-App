@@ -113,9 +113,9 @@ class WebSidebar extends StatelessWidget {
                             onTap: () => onItemTap(1),
                           ),
                           _SidebarItem(
-                            icon: Icons.car_crash_outlined,
-                            selectedIcon: Icons.car_crash,
-                            label: "Damage Detection",
+                            icon: Icons.build_outlined,
+                            selectedIcon: Icons.build,
+                            label: "Maintenance",
                             isSelected: selectedIndex == 2,
                             onTap: () => onItemTap(2),
                           ),

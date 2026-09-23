@@ -415,8 +415,8 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
               child: SizedBox(
                 height: 180,
                 child: FeatureCard(
-                  icon: Icons.car_crash_outlined,
-                  title: "Damage\nDetection",
+                  icon: Icons.build_outlined,
+                  title: "Maintenance",
                   onTap: () => _showFeatureNotAvailableSnackBar(context),
                 ),
               ),
