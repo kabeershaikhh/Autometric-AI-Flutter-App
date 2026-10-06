@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../auth/auth_service.dart';
+import '../constants/app_colors.dart';
 import '../components/my_social_button.dart';
 import '../components/my_textfield.dart';
 import 'login_page.dart';
@@ -62,15 +63,7 @@ class WebRegisterLayout extends StatelessWidget {
 
         Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF6236FF),
-                Color(0xFF8D6AF8),
-                Color(0xFFD9C5FF),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
+            gradient: AppColors.authWebGradient,
           ),
         ),
 
@@ -283,15 +276,7 @@ class AndroidRegisterLayout extends StatelessWidget {
         /// BACKGROUND
         Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF7C4DFF),
-                Color(0xFF9E7BFF),
-                Color(0xFFFDF7FF),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+            gradient: AppColors.authMobileGradient,
           ),
         ),
 

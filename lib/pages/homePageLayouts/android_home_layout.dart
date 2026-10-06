@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../auth/auth_prompt.dart';
 import '../../components/feature_card.dart';
 import '../../components/home_app_bar.dart';
 import '../../components/home_bottom_nav.dart';
@@ -47,6 +49,46 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
   int selectedIndex = 0;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
+  bool get _isGuest => FirebaseAuth.instance.currentUser == null;
+
+  Future<void> _openHistory() async {
+    if (!await requireAuthentication(
+          context,
+          feature: 'view evaluation history',
+        ) ||
+        !mounted) {
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HistoryPage(
+          userName: widget.userName,
+          userEmail: widget.userEmail,
+          photoBase64: widget.photoBase64,
+          userService: widget.userService,
+          onLogout: widget.onLogout,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMaintenance() async {
+    if (!await requireAuthentication(context, feature: 'use Maintenance') ||
+        !mounted) {
+      return;
+    }
+    _showFeatureNotAvailableSnackBar(context);
+  }
+
+  Future<void> _openProfile() async {
+    if (!await requireAuthentication(context, feature: 'manage your profile') ||
+        !mounted) {
+      return;
+    }
+    scaffoldKey.currentState?.openEndDrawer();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,47 +98,42 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
       ///////////////////////////////////////////////////////
       /// DRAWER
       ///////////////////////////////////////////////////////
-
-      endDrawer: HomeDrawer(
-        onLogout: () {
-          Navigator.pop(context);
-          widget.onLogout();
-        },
-        userName: widget.userName,
-        userEmail: widget.userEmail,
-        photoBase64: widget.photoBase64,
-        userService: widget.userService,
-      ),
+      endDrawer: _isGuest
+          ? null
+          : HomeDrawer(
+              onLogout: () {
+                Navigator.pop(context);
+                widget.onLogout();
+              },
+              userName: widget.userName,
+              userEmail: widget.userEmail,
+              photoBase64: widget.photoBase64,
+              userService: widget.userService,
+            ),
 
       ///////////////////////////////////////////////////////
       /// BODY
       ///////////////////////////////////////////////////////
-
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             /////////////////////////////////////////////////////
             /// PURPLE HEADER (AppBar + Welcome)
             /////////////////////////////////////////////////////
-
             _buildHeader(),
 
             /////////////////////////////////////////////////////
             /// CONTENT BODY
             /////////////////////////////////////////////////////
-
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   /////////////////////////////////////////////////////
                   /// SECTION TITLE — Quick Actions
                   /////////////////////////////////////////////////////
-
                   const Text(
                     "Quick Actions",
                     style: TextStyle(
@@ -111,7 +148,6 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                   /////////////////////////////////////////////////////
                   /// FEATURE CARDS (reusable component)
                   /////////////////////////////////////////////////////
-
                   Row(
                     children: [
                       Expanded(
@@ -144,7 +180,7 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                           child: FeatureCard(
                             icon: Icons.build_outlined,
                             title: "Maintenance",
-                            onTap: () => _showFeatureNotAvailableSnackBar(context),
+                            onTap: _openMaintenance,
                           ),
                         ),
                       ),
@@ -156,7 +192,6 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                   /////////////////////////////////////////////////////
                   /// MARKET CARD
                   /////////////////////////////////////////////////////
-
                   const MarketCard(),
 
                   const SizedBox(height: 28),
@@ -164,7 +199,6 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                   /////////////////////////////////////////////////////
                   /// SECTION TITLE — Recent Evaluations
                   /////////////////////////////////////////////////////
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -177,20 +211,7 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                         ),
                       ),
                       TextButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HistoryPage(
-                                userName: widget.userName,
-                                userEmail: widget.userEmail,
-                                photoBase64: widget.photoBase64,
-                                userService: widget.userService,
-                                onLogout: widget.onLogout,
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: _openHistory,
                         iconAlignment: IconAlignment.end,
                         icon: const Icon(
                           Icons.arrow_forward_ios_rounded,
@@ -214,8 +235,9 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                   /////////////////////////////////////////////////////
                   /// EVALUATIONS LIST (from Firestore)
                   /////////////////////////////////////////////////////
-
-                  _buildEvaluationsList(),
+                  _isGuest
+                      ? _buildGuestEvaluationsCard()
+                      : _buildEvaluationsList(),
 
                   const SizedBox(height: 20),
                 ],
@@ -228,7 +250,6 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
       ///////////////////////////////////////////////////////
       /// BOTTOM NAVIGATION
       ///////////////////////////////////////////////////////
-
       bottomNavigationBar: HomeBottomNav(
         currentIndex: selectedIndex,
         onTap: (index) {
@@ -268,24 +289,13 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
               setState(() {
                 selectedIndex = 0;
               });
-              _showFeatureNotAvailableSnackBar(context);
+              _openMaintenance();
               break;
             case 3:
               setState(() {
                 selectedIndex = 3;
               });
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => HistoryPage(
-                    userName: widget.userName,
-                    userEmail: widget.userEmail,
-                    photoBase64: widget.photoBase64,
-                    userService: widget.userService,
-                    onLogout: widget.onLogout,
-                  ),
-                ),
-              ).then((_) {
+              _openHistory().then((_) {
                 setState(() {
                   selectedIndex = 0;
                 });
@@ -320,9 +330,7 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
       ),
       child: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.headerGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppColors.headerGradient),
         child: Stack(
           children: [
             // Subtle decorative circles
@@ -371,12 +379,9 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     /// AppBar Row
                     HomeAppBar(
-                      onProfileTap: () {
-                        scaffoldKey.currentState!.openEndDrawer();
-                      },
+                      onProfileTap: _openProfile,
                       photoBase64: widget.photoBase64,
                     ),
 
@@ -478,6 +483,37 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
           }).toList(),
         );
       },
+    );
+  }
+
+  Widget _buildGuestEvaluationsCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.primaryBorder),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.history_rounded, color: AppColors.primary, size: 34),
+          const SizedBox(height: 10),
+          const Text(
+            'Log in to save and view evaluations',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _openHistory,
+            child: const Text('Log in or create account'),
+          ),
+        ],
+      ),
     );
   }
 }

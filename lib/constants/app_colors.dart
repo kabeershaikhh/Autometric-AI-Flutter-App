@@ -13,6 +13,18 @@ class AppColors {
   static const Color primaryBorder = Color(0xFFD8C9FF);
 
   // ── Gradient ──
+  static const LinearGradient authMobileGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF7C4DFF), Color(0xFF9E7BFF), Color(0xFFFDF7FF)],
+  );
+
+  static const LinearGradient authWebGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF6333F3), Color(0xFFA07DFF), Color(0xFFDBB7FF)],
+  );
+
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,

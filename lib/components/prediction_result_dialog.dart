@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../auth/auth_prompt.dart';
 import '../constants/app_colors.dart';
 import '../servers/user_service.dart';
 
@@ -64,13 +65,20 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
   Future<void> _handleSaveEvaluation() async {
     if (_isSaving || _isSaved) return;
 
+    final authenticated = await requireAuthentication(
+      context,
+      feature: 'save this evaluation and access it later',
+    );
+    if (!authenticated || !mounted) return;
+
     setState(() {
       _isSaving = true;
     });
 
     try {
       final carTitle =
-          "${widget.brand ?? ''} ${widget.model ?? ''} ${widget.variant ?? ''}".trim();
+          "${widget.brand ?? ''} ${widget.model ?? ''} ${widget.variant ?? ''}"
+              .trim();
 
       final data = {
         'carName': carTitle.isNotEmpty ? carTitle : 'Unknown Car',
@@ -129,7 +137,8 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
   @override
   Widget build(BuildContext context) {
     final titleCar = "${widget.brand ?? ''} ${widget.model ?? ''}".trim();
-    final subTitleCar = "${widget.variant ?? ''} • ${widget.modelYear ?? ''}".trim();
+    final subTitleCar = "${widget.variant ?? ''} • ${widget.modelYear ?? ''}"
+        .trim();
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
@@ -167,7 +176,10 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                       child: const _DialogCircle(70),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 28,
+                        horizontal: 24,
+                      ),
                       child: Column(
                         children: [
                           Container(
@@ -199,7 +211,9 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            titleCar.isNotEmpty ? titleCar : "Vehicle Market Estimate",
+                            titleCar.isNotEmpty
+                                ? titleCar
+                                : "Vehicle Market Estimate",
                             style: TextStyle(
                               color: AppColors.white.withValues(alpha: 0.9),
                               fontSize: 14,
@@ -224,7 +238,9 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
-                          vertical: 20, horizontal: 16),
+                        vertical: 20,
+                        horizontal: 16,
+                      ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
@@ -248,7 +264,9 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.2,
-                              color: AppColors.primaryDark.withValues(alpha: 0.8),
+                              color: AppColors.primaryDark.withValues(
+                                alpha: 0.8,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -282,8 +300,11 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                         children: [
                           Row(
                             children: const [
-                              Icon(Icons.directions_car_rounded,
-                                  size: 16, color: AppColors.primary),
+                              Icon(
+                                Icons.directions_car_rounded,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
                               SizedBox(width: 6),
                               Text(
                                 "Car Specifications",
@@ -320,7 +341,8 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                                   icon: Icons.time_to_leave_rounded,
                                   label: widget.bodyType!,
                                 ),
-                              if (widget.mileageKm != null && widget.mileageKm!.isNotEmpty)
+                              if (widget.mileageKm != null &&
+                                  widget.mileageKm!.isNotEmpty)
                                 _SpecChip(
                                   icon: Icons.speed_rounded,
                                   label: "${widget.mileageKm} km",
@@ -351,13 +373,13 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                     // ── DYNAMIC ENGAGEMENT MESSAGE ──
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.amber.shade50,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: Colors.amber.shade200,
-                        ),
+                        border: Border.all(color: Colors.amber.shade200),
                       ),
                       child: Row(
                         children: [
@@ -441,9 +463,7 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                       onPressed: () => Navigator.pop(context),
                       child: const Text(
                         "Done",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),

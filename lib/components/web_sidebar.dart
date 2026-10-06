@@ -10,6 +10,8 @@ class WebSidebar extends StatelessWidget {
   final ValueChanged<int> onItemTap;
   final VoidCallback onLogout;
   final VoidCallback onProfileTap;
+  final VoidCallback? onLogin;
+  final bool isGuest;
   final String? photoBase64;
 
   const WebSidebar({
@@ -18,6 +20,8 @@ class WebSidebar extends StatelessWidget {
     required this.onItemTap,
     required this.onLogout,
     required this.onProfileTap,
+    this.onLogin,
+    this.isGuest = false,
     this.photoBase64,
   });
 
@@ -30,36 +34,20 @@ class WebSidebar extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF6A3DE8),
-              AppColors.primary,
-            ],
+            colors: [Color(0xFF6A3DE8), AppColors.primary],
           ),
         ),
         child: Stack(
           children: [
             // Decorative circles
-            Positioned(
-              top: -60,
-              right: -50,
-              child: _SidebarCircle(180),
-            ),
-            Positioned(
-              bottom: -70,
-              left: -40,
-              child: _SidebarCircle(200),
-            ),
-            Positioned(
-              top: 200,
-              right: -30,
-              child: _SidebarCircle(90),
-            ),
+            Positioned(top: -60, right: -50, child: _SidebarCircle(180)),
+            Positioned(bottom: -70, left: -40, child: _SidebarCircle(200)),
+            Positioned(top: 200, right: -30, child: _SidebarCircle(90)),
 
             // Content
             SafeArea(
               child: Column(
                 children: [
-
                   // ── TOP: Logo (fixed) ──
                   const SizedBox(height: 24),
                   Container(
@@ -141,7 +129,7 @@ class WebSidebar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(14),
-                        onTap: onLogout,
+                        onTap: isGuest ? onLogin : onLogout,
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
@@ -150,17 +138,17 @@ class WebSidebar extends StatelessWidget {
                             ),
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.logout,
+                                isGuest ? Icons.login : Icons.logout,
                                 color: AppColors.white,
                                 size: 19,
                               ),
-                              SizedBox(width: 10),
+                              const SizedBox(width: 10),
                               Text(
-                                "Logout",
+                                isGuest ? "Log in" : "Logout",
                                 style: TextStyle(
                                   color: AppColors.white,
                                   fontWeight: FontWeight.w600,
@@ -184,7 +172,6 @@ class WebSidebar extends StatelessWidget {
     );
   }
 }
-
 
 /// Decorative circle for drawer header.
 class _SidebarCircle extends StatelessWidget {
@@ -250,8 +237,9 @@ class _SidebarItem extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: AppColors.white,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     fontSize: 15,
                   ),
                 ),

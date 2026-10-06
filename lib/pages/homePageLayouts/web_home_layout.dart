@@ -1,8 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../auth/auth_prompt.dart';
+import '../../auth/auth_flow_page.dart';
 import '../../components/feature_card.dart';
 import '../../components/home_drawer.dart';
 import '../../components/market_card.dart';
@@ -50,8 +53,48 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
   int selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  bool get _isGuest => FirebaseAuth.instance.currentUser == null;
+
   void _openProfileDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
+  }
+
+  Future<void> _openProfile() async {
+    if (!await requireAuthentication(context, feature: 'manage your profile') ||
+        !mounted) {
+      return;
+    }
+    _openProfileDrawer();
+  }
+
+  Future<void> _openHistory() async {
+    if (!await requireAuthentication(
+          context,
+          feature: 'view evaluation history',
+        ) ||
+        !mounted) {
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HistoryPage(
+          userName: widget.userName,
+          userEmail: widget.userEmail,
+          photoBase64: widget.photoBase64,
+          userService: widget.userService,
+          onLogout: widget.onLogout,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMaintenance() async {
+    if (!await requireAuthentication(context, feature: 'use Maintenance') ||
+        !mounted) {
+      return;
+    }
+    _showFeatureNotAvailableSnackBar(context);
   }
 
   @override
@@ -63,29 +106,27 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
       ///////////////////////////////////////////////////////
       /// END DRAWER — same HomeDrawer as Android
       ///////////////////////////////////////////////////////
-
-      endDrawer: HomeDrawer(
-        onLogout: () {
-          Navigator.pop(context);
-          widget.onLogout();
-        },
-        userName: widget.userName,
-        userEmail: widget.userEmail,
-        photoBase64: widget.photoBase64,
-        userService: widget.userService,
-      ),
+      endDrawer: _isGuest
+          ? null
+          : HomeDrawer(
+              onLogout: () {
+                Navigator.pop(context);
+                widget.onLogout();
+              },
+              userName: widget.userName,
+              userEmail: widget.userEmail,
+              photoBase64: widget.photoBase64,
+              userService: widget.userService,
+            ),
 
       ///////////////////////////////////////////////////////
       /// BODY — Sidebar + Main Content
       ///////////////////////////////////////////////////////
-
       body: Row(
         children: [
-
           ///////////////////////////////////////////////////////
           /// LEFT SIDEBAR
           ///////////////////////////////////////////////////////
-
           WebSidebar(
             selectedIndex: selectedIndex,
             onItemTap: (index) {
@@ -118,23 +159,12 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                 setState(() {
                   selectedIndex = 0;
                 });
-                _showFeatureNotAvailableSnackBar(context);
+                _openMaintenance();
               } else if (index == 3) {
                 setState(() {
                   selectedIndex = 3;
                 });
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HistoryPage(
-                      userName: widget.userName,
-                      userEmail: widget.userEmail,
-                      photoBase64: widget.photoBase64,
-                      userService: widget.userService,
-                      onLogout: widget.onLogout,
-                    ),
-                  ),
-                ).then((_) {
+                _openHistory().then((_) {
                   setState(() {
                     selectedIndex = 0;
                   });
@@ -155,18 +185,20 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
               }
               widget.onLogout();
             },
-            onProfileTap: _openProfileDrawer,
+            onProfileTap: _openProfile,
+            isGuest: _isGuest,
+            onLogin: () => Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => const AuthFlowPage()),
+            ),
             photoBase64: widget.photoBase64,
           ),
 
           ///////////////////////////////////////////////////////
           /// MAIN CONTENT AREA
           ///////////////////////////////////////////////////////
-
           Expanded(
             child: Column(
               children: [
-
                 /// Top Bar
                 _buildTopBar(),
 
@@ -177,11 +209,9 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         /////////////////////////////////////////////////////
                         /// TOP ROW — Market Card + Quick Actions
                         /////////////////////////////////////////////////////
-
                         LayoutBuilder(
                           builder: (context, constraints) {
                             // If wide enough, show side-by-side
@@ -196,10 +226,7 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                                   ),
                                   const SizedBox(width: 24),
                                   // Market Card — right
-                                  const Expanded(
-                                    flex: 3,
-                                    child: MarketCard(),
-                                  ),
+                                  const Expanded(flex: 3, child: MarketCard()),
                                 ],
                               );
                             }
@@ -221,7 +248,6 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                         /////////////////////////////////////////////////////
                         /// RECENT EVALUATIONS
                         /////////////////////////////////////////////////////
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -234,20 +260,7 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                               ),
                             ),
                             TextButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => HistoryPage(
-                                      userName: widget.userName,
-                                      userEmail: widget.userEmail,
-                                      photoBase64: widget.photoBase64,
-                                      userService: widget.userService,
-                                      onLogout: widget.onLogout,
-                                    ),
-                                  ),
-                                );
-                              },
+                              onPressed: _openHistory,
                               iconAlignment: IconAlignment.end,
                               icon: const Icon(
                                 Icons.arrow_forward_ios_rounded,
@@ -268,7 +281,9 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
 
                         const SizedBox(height: 18),
 
-                        _buildEvaluationsList(),
+                        _isGuest
+                            ? _buildGuestEvaluationsCard()
+                            : _buildEvaluationsList(),
 
                         const SizedBox(height: 32),
                       ],
@@ -288,8 +303,7 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
   ///////////////////////////////////////////////////////
 
   Widget _buildTopBar() {
-    final Uint8List? photoBytes =
-        UserService.decodePhoto(widget.photoBase64);
+    final Uint8List? photoBytes = UserService.decodePhoto(widget.photoBase64);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
@@ -321,10 +335,7 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                 const SizedBox(height: 4),
                 const Text(
                   "Let's evaluate your car today",
-                  style: TextStyle(
-                    color: AppColors.textGrey,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: AppColors.textGrey, fontSize: 14),
                 ),
               ],
             ),
@@ -349,17 +360,15 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
 
           // Profile avatar — opens drawer
           GestureDetector(
-            onTap: _openProfileDrawer,
+            onTap: _openProfile,
             child: CircleAvatar(
               radius: 22,
               backgroundColor: AppColors.primarySurface,
-              backgroundImage:
-                  photoBytes != null ? MemoryImage(photoBytes) : null,
+              backgroundImage: photoBytes != null
+                  ? MemoryImage(photoBytes)
+                  : null,
               child: photoBytes == null
-                  ? const Icon(
-                      Icons.person,
-                      color: AppColors.primary,
-                    )
+                  ? const Icon(Icons.person, color: AppColors.primary)
                   : null,
             ),
           ),
@@ -417,7 +426,7 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                 child: FeatureCard(
                   icon: Icons.build_outlined,
                   title: "Maintenance",
-                  onTap: () => _showFeatureNotAvailableSnackBar(context),
+                  onTap: _openMaintenance,
                 ),
               ),
             ),
@@ -496,6 +505,51 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildGuestEvaluationsCard() {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 700),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(26),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.primaryBorder),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.history_rounded,
+              color: AppColors.primary,
+              size: 38,
+            ),
+            const SizedBox(width: 18),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Log in to save and view evaluations',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Your saved vehicle valuations will appear here.',
+                    style: TextStyle(color: AppColors.textGrey),
+                  ),
+                ],
+              ),
+            ),
+            TextButton(onPressed: _openHistory, child: const Text('Log in')),
+          ],
+        ),
+      ),
     );
   }
 }

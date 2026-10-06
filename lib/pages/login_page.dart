@@ -66,15 +66,7 @@ class WebLoginLayout extends StatelessWidget {
         /// Background
         Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF6333F3),
-                Color(0xFFA07DFF),
-                Color(0xFFDBB7FF),
-              ],
-            ),
+            gradient: AppColors.authWebGradient,
           ),
         ),
 
@@ -286,15 +278,7 @@ class AndroidLoginLayout extends StatelessWidget {
         /// Background
         Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF7C4DFF),
-                Color(0xFF9E7BFF),
-                Color(0xFFFDF7FF),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+            gradient: AppColors.authMobileGradient,
           ),
         ),
 

@@ -1,10 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../auth/auth_prompt.dart';
+import '../../auth/auth_flow_page.dart';
 import '../../components/predict_dropdown.dart';
 import '../../components/predict_mileage_input.dart';
 import '../../components/home_drawer.dart';
 import '../../components/web_sidebar.dart';
 import '../../constants/app_colors.dart';
 import '../../servers/user_service.dart';
+import '../history_page.dart';
 
 /// Refactored, beautified Web Predict Layout with reusable components and section cards.
 class WebPredictLayout extends StatefulWidget {
@@ -98,8 +102,59 @@ class WebPredictLayout extends StatefulWidget {
 class _WebPredictLayoutState extends State<WebPredictLayout> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  bool get _isGuest => FirebaseAuth.instance.currentUser == null;
+
   void _openProfileDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
+  }
+
+  Future<void> _openProfile() async {
+    if (!await requireAuthentication(context, feature: 'manage your profile') ||
+        !mounted) {
+      return;
+    }
+    _openProfileDrawer();
+  }
+
+  Future<void> _openMaintenance() async {
+    if (!await requireAuthentication(context, feature: 'use Maintenance') ||
+        !mounted) {
+      return;
+    }
+    _showUnavailable();
+  }
+
+  Future<void> _openHistory() async {
+    if (!await requireAuthentication(
+          context,
+          feature: 'view evaluation history',
+        ) ||
+        !mounted) {
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => HistoryPage(
+          userName: widget.userName,
+          userEmail: widget.userEmail,
+          photoBase64: widget.photoBase64,
+          userService: widget.userService,
+          onLogout: widget.onLogout,
+        ),
+      ),
+    );
+  }
+
+  void _showUnavailable() {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Feature is currently not available'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -113,28 +168,31 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
       );
     }
 
-    final brands = (widget.options['brands'] as List<dynamic>?)
+    final brands =
+        (widget.options['brands'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
         [];
 
     final modelsByBrand =
         widget.options['models_by_brand'] as Map<String, dynamic>? ?? {};
-    final modelsList = (widget.brand != null &&
-            modelsByBrand.containsKey(widget.brand))
+    final modelsList =
+        (widget.brand != null && modelsByBrand.containsKey(widget.brand))
         ? (modelsByBrand[widget.brand] as List<dynamic>)
-            .map((e) => e as String)
-            .toList()
+              .map((e) => e as String)
+              .toList()
         : <String>[];
 
     final variantsByBrandModel =
-        widget.options['variants_by_brand_model'] as Map<String, dynamic>? ?? {};
+        widget.options['variants_by_brand_model'] as Map<String, dynamic>? ??
+        {};
     final brandModelKey = "${widget.brand}_${widget.model}";
-    final variantsList = (widget.model != null &&
+    final variantsList =
+        (widget.model != null &&
             variantsByBrandModel.containsKey(brandModelKey))
         ? (variantsByBrandModel[brandModelKey] as List<dynamic>)
-            .map((e) => e as String)
-            .toList()
+              .map((e) => e as String)
+              .toList()
         : <String>[];
 
     final years = widget.filteredYears;
@@ -143,15 +201,17 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
     final bodyTypes = widget.bodyType != null
         ? <String>[widget.bodyType!]
         : ((widget.options['body_types'] as List<dynamic>?)
-                ?.map((e) => e as String)
-                .toList() ??
-            []);
-    final colors = (widget.options['colors'] as List<dynamic>?)
+                  ?.map((e) => e as String)
+                  .toList() ??
+              []);
+    final colors =
+        (widget.options['colors'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
         [];
     final assemblies = widget.filteredAssemblies;
-    final cities = (widget.options['cities'] as List<dynamic>?)
+    final cities =
+        (widget.options['cities'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
         [];
@@ -159,16 +219,18 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.scaffoldBg,
-      endDrawer: HomeDrawer(
-        onLogout: () {
-          Navigator.pop(context);
-          widget.onLogout();
-        },
-        userName: widget.userName,
-        userEmail: widget.userEmail,
-        photoBase64: widget.photoBase64,
-        userService: widget.userService,
-      ),
+      endDrawer: _isGuest
+          ? null
+          : HomeDrawer(
+              onLogout: () {
+                Navigator.pop(context);
+                widget.onLogout();
+              },
+              userName: widget.userName,
+              userEmail: widget.userEmail,
+              photoBase64: widget.photoBase64,
+              userService: widget.userService,
+            ),
       body: Row(
         children: [
           // ── LEFT SIDEBAR ──
@@ -177,19 +239,18 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
             onItemTap: (index) {
               if (index == 0) {
                 Navigator.pop(context); // Return to Home
-              } else if (index == 2 || index == 3) {
-                ScaffoldMessenger.of(context).clearSnackBars();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Feature is currently not available"),
-                    behavior: SnackBarBehavior.floating,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+              } else if (index == 2) {
+                _openMaintenance();
+              } else if (index == 3) {
+                _openHistory();
               }
             },
             onLogout: widget.onLogout,
-            onProfileTap: _openProfileDrawer,
+            onProfileTap: _openProfile,
+            isGuest: _isGuest,
+            onLogin: () => Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => const AuthFlowPage()),
+            ),
             photoBase64: widget.photoBase64,
           ),
 
@@ -201,7 +262,9 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 32),
+                      horizontal: 40,
+                      vertical: 32,
+                    ),
                     child: Center(
                       child: Container(
                         constraints: const BoxConstraints(maxWidth: 920),
@@ -216,8 +279,9 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.25),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.25,
+                                    ),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8),
                                   ),
@@ -256,26 +320,34 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                                                   Container(
                                                     padding:
                                                         const EdgeInsets.symmetric(
-                                                            horizontal: 10,
-                                                            vertical: 4),
+                                                          horizontal: 10,
+                                                          vertical: 4,
+                                                        ),
                                                     decoration: BoxDecoration(
                                                       color: AppColors.white
-                                                          .withValues(alpha: 0.2),
+                                                          .withValues(
+                                                            alpha: 0.2,
+                                                          ),
                                                       borderRadius:
-                                                          BorderRadius.circular(20),
+                                                          BorderRadius.circular(
+                                                            20,
+                                                          ),
                                                     ),
                                                     child: Row(
                                                       mainAxisSize:
                                                           MainAxisSize.min,
                                                       children: const [
-                                                        Icon(Icons.auto_awesome,
-                                                            size: 14,
-                                                            color: Colors.amber),
+                                                        Icon(
+                                                          Icons.auto_awesome,
+                                                          size: 14,
+                                                          color: Colors.amber,
+                                                        ),
                                                         SizedBox(width: 6),
                                                         Text(
                                                           "AI Market Valuation",
                                                           style: TextStyle(
-                                                            color: AppColors.white,
+                                                            color:
+                                                                AppColors.white,
                                                             fontSize: 12,
                                                             fontWeight:
                                                                 FontWeight.bold,
@@ -312,8 +384,9 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                                           width: 64,
                                           height: 64,
                                           decoration: BoxDecoration(
-                                            color: AppColors.white
-                                                .withValues(alpha: 0.15),
+                                            color: AppColors.white.withValues(
+                                              alpha: 0.15,
+                                            ),
                                             shape: BoxShape.circle,
                                           ),
                                           child: const Icon(
@@ -491,8 +564,9 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                                 borderRadius: BorderRadius.circular(18),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.35),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.35,
+                                    ),
                                     blurRadius: 18,
                                     offset: const Offset(0, 6),
                                   ),
@@ -522,8 +596,11 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: const [
-                                          Icon(Icons.analytics_rounded,
-                                              color: AppColors.white, size: 22),
+                                          Icon(
+                                            Icons.analytics_rounded,
+                                            color: AppColors.white,
+                                            size: 22,
+                                          ),
                                           SizedBox(width: 10),
                                           Text(
                                             'Calculate Market Value',
@@ -572,8 +649,11 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(Icons.chevron_right,
-                    size: 16, color: AppColors.textGrey),
+                child: Icon(
+                  Icons.chevron_right,
+                  size: 16,
+                  color: AppColors.textGrey,
+                ),
               ),
               const Text(
                 "Predict Price",
@@ -590,12 +670,14 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
             children: [
               IconButton(
                 onPressed: () {},
-                icon: const Icon(Icons.notifications_none_rounded,
-                    color: AppColors.textDark),
+                icon: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: AppColors.textDark,
+                ),
               ),
               const SizedBox(width: 12),
               InkWell(
-                onTap: _openProfileDrawer,
+                onTap: _openProfile,
                 borderRadius: BorderRadius.circular(20),
                 child: Row(
                   children: [
@@ -622,8 +704,10 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.arrow_drop_down,
-                        color: AppColors.textGrey),
+                    const Icon(
+                      Icons.arrow_drop_down,
+                      color: AppColors.textGrey,
+                    ),
                   ],
                 ),
               ),
