@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../auth/auth_service.dart';
 import '../constants/app_colors.dart';
 
-/// Settings drawer that slides in when "Settings" is tapped from HomeDrawer.
+/// Account settings content displayed on the full-screen settings page.
 /// Provides:
 ///   • Change Password (in-app with re-authentication)
 ///   • Send Password Reset Link (fallback)
@@ -12,142 +12,70 @@ class SettingsDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      backgroundColor: AppColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          // topLeft: Radius.circular(28),
-          bottomLeft: Radius.circular(28),
-        ),
-      ),
+    return SizedBox(
+      width: double.infinity,
       child: SafeArea(
         top: false,
-        child: Column(
-          children: [
-            //////////////////////////////////////
-            /// HEADER
-            //////////////////////////////////////
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              //////////////////////////////////////
+              /// HEADER
+              //////////////////////////////////////
+              const SizedBox(height: 16),
 
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: AppColors.headerGradient,
-                ),
-                child: Stack(
-                  children: [
-                    // Smooth, large decorative circles like rest of the app
-                    Positioned(
-                      top: -20,
-                      right: -10,
-                      child: _SettingsCircle(80),
+              //////////////////////////////////////
+              /// SETTINGS ITEMS
+              //////////////////////////////////////
+
+              // ── Security Section ──
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Security",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textGrey,
+                      letterSpacing: 0.8,
                     ),
-                    Positioned(
-                      bottom: -20,
-                      left: -10,
-                      child: _SettingsCircle(80),
-                    ),
-
-                    // Content with inner padding
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
-                      child: Column(
-                        children: [
-                          // Back button row
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () => Navigator.pop(context),
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.arrow_back,
-                                    color: AppColors.white,
-                                    size: 22,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              const Text(
-                                "Settings",
-                                style: TextStyle(
-                                  color: AppColors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            //////////////////////////////////////
-            /// SETTINGS ITEMS
-            //////////////////////////////////////
-
-            // ── Security Section ──
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Security",
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textGrey,
-                    letterSpacing: 0.8,
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-            _SettingsItem(
-              icon: Icons.lock_outline,
-              title: "Change Password",
-              subtitle: "Update your password in-app",
-              onTap: () => _showChangePasswordDialog(context),
-            ),
+              _SettingsItem(
+                icon: Icons.lock_outline,
+                title: "Change Password",
+                subtitle: "Update your password in-app",
+                onTap: () => _showChangePasswordDialog(context),
+              ),
 
-            _SettingsItem(
-              icon: Icons.email_outlined,
-              title: "Send Reset Link",
-              subtitle: "Receive a password reset email",
-              onTap: () => _sendResetLink(context),
-            ),
+              _SettingsItem(
+                icon: Icons.email_outlined,
+                title: "Send Reset Link",
+                subtitle: "Receive a password reset email",
+                onTap: () => _sendResetLink(context),
+              ),
 
-            const Spacer(),
+              const SizedBox(height: 32),
 
-            // Footer
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text(
-                "AutoMetric AI v1.0.0",
-                style: TextStyle(
-                  color: AppColors.textGrey.withValues(alpha: 0.6),
-                  fontSize: 12,
+              // Footer
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  "AutoMetric AI v1.0.0",
+                  style: TextStyle(
+                    color: AppColors.textGrey.withValues(alpha: 0.6),
+                    fontSize: 12,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -272,7 +200,9 @@ class SettingsDrawer extends StatelessWidget {
                         );
 
                         if (context.mounted) {
-                          Navigator.of(context).popUntil((route) => route.isFirst);
+                          Navigator.of(
+                            context,
+                          ).popUntil((route) => route.isFirst);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text("Password changed successfully! ✓"),
@@ -381,11 +311,14 @@ class SettingsDrawer extends StatelessWidget {
                           try {
                             await authService.sendPasswordResetEmail(email);
                             if (context.mounted) {
-                              Navigator.of(context).popUntil((route) => route.isFirst);
+                              Navigator.of(
+                                context,
+                              ).popUntil((route) => route.isFirst);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                      "Reset link sent to $email. Signing you out..."),
+                                    "Reset link sent to $email. Signing you out...",
+                                  ),
                                   behavior: SnackBarBehavior.floating,
                                   backgroundColor: AppColors.primary,
                                 ),
@@ -397,9 +330,8 @@ class SettingsDrawer extends StatelessWidget {
                               Navigator.pop(ctx);
                               showDialog(
                                 context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text(e.toString()),
-                                ),
+                                builder: (context) =>
+                                    AlertDialog(title: Text(e.toString())),
                               );
                             }
                           } finally {
@@ -458,9 +390,7 @@ class _SettingsItem extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 10),
         horizontalTitleGap: 12,
         minLeadingWidth: 38,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         leading: Container(
           width: 38,
           height: 38,
@@ -484,10 +414,7 @@ class _SettingsItem extends StatelessWidget {
           subtitle,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: AppColors.textGrey,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: AppColors.textGrey, fontSize: 12),
         ),
         trailing: Icon(
           Icons.arrow_forward_ios,
@@ -542,44 +469,17 @@ class _PasswordFieldState extends State<_PasswordField> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: AppColors.error,
-          ),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: AppColors.error,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
       ),
     );
   }
 }
-
-/// Decorative circle for settings header.
-class _SettingsCircle extends StatelessWidget {
-  final double size;
-  const _SettingsCircle(this.size);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: 0.07),
-      ),
-    );
-  }
-}
-

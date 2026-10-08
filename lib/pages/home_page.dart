@@ -1,21 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../auth/auth_service.dart';
-import '../constants/app_colors.dart';
 import '../servers/user_service.dart';
-import 'homePageLayouts/android_home_layout.dart';
-import 'homePageLayouts/web_home_layout.dart';
+import 'app_shell.dart';
 
-/// The main home page shell.
-///
-/// Responsibilities:
-/// - Listens to the current user's Firestore document in real-time.
-/// - Switches between [AndroidHomeLayout] and [WebHomeLayout] based on
-///   `kIsWeb && width >= 950`.
-/// - Passes user data (name, email, photo) down to both layouts.
+/// Streams profile updates into the persistent responsive application shell.
 class HomePage extends StatelessWidget {
   final VoidCallback onLoggedOut;
 
@@ -32,21 +23,14 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (FirebaseAuth.instance.currentUser == null) {
-      return _buildHome(
-        context,
-        userName: 'Guest',
-        userEmail: '',
-        photoBase64: '',
-      );
-    }
-
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: _userService.userStream(),
       builder: (context, snapshot) {
         // Extract user data (with safe defaults)
         final userData = snapshot.data?.data();
-        final userName = userData?['name'] as String? ?? 'User';
+        final userName =
+            userData?['name'] as String? ??
+            (FirebaseAuth.instance.currentUser == null ? 'Guest' : 'User');
         final userEmail = userData?['email'] as String? ?? '';
         final photoBase64 = userData?['photoBase64'] as String? ?? '';
 
@@ -66,29 +50,12 @@ class HomePage extends StatelessWidget {
     required String userEmail,
     required String photoBase64,
   }) {
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (kIsWeb && constraints.maxWidth >= 950) {
-            return WebHomeLayout(
-              onLogout: () => logout(context),
-              userName: userName,
-              userEmail: userEmail,
-              photoBase64: photoBase64,
-              userService: _userService,
-            );
-          }
-
-          return AndroidHomeLayout(
-            onLogout: () => logout(context),
-            userName: userName,
-            userEmail: userEmail,
-            photoBase64: photoBase64,
-            userService: _userService,
-          );
-        },
-      ),
+    return AppShell(
+      onLogout: () => logout(context),
+      userName: userName,
+      userEmail: userEmail,
+      photoBase64: photoBase64,
+      userService: _userService,
     );
   }
 }

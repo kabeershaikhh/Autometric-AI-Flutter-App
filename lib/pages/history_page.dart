@@ -29,7 +29,7 @@ class HistoryPage extends StatelessWidget {
       backgroundColor: AppColors.scaffoldBg,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          if (kIsWeb && constraints.maxWidth >= 950) {
+          if (kIsWeb && MediaQuery.sizeOf(context).width >= 950) {
             return WebHistoryLayout(
               userName: userName,
               userEmail: userEmail,

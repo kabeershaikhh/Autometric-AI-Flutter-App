@@ -89,7 +89,8 @@ class AndroidPredictLayout extends StatelessWidget {
       );
     }
 
-    final brands = (options['brands'] as List<dynamic>?)
+    final brands =
+        (options['brands'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
         [];
@@ -98,8 +99,8 @@ class AndroidPredictLayout extends StatelessWidget {
         options['models_by_brand'] as Map<String, dynamic>? ?? {};
     final modelsList = (brand != null && modelsByBrand.containsKey(brand))
         ? (modelsByBrand[brand] as List<dynamic>)
-            .map((e) => e as String)
-            .toList()
+              .map((e) => e as String)
+              .toList()
         : <String>[];
 
     final variantsByBrandModel =
@@ -107,10 +108,10 @@ class AndroidPredictLayout extends StatelessWidget {
     final brandModelKey = "${brand}_$model";
     final variantsList =
         (model != null && variantsByBrandModel.containsKey(brandModelKey))
-            ? (variantsByBrandModel[brandModelKey] as List<dynamic>)
-                .map((e) => e as String)
-                .toList()
-            : <String>[];
+        ? (variantsByBrandModel[brandModelKey] as List<dynamic>)
+              .map((e) => e as String)
+              .toList()
+        : <String>[];
 
     final years = filteredYears;
     final engines = filteredEngines;
@@ -118,15 +119,17 @@ class AndroidPredictLayout extends StatelessWidget {
     final bodyTypes = bodyType != null
         ? <String>[bodyType!]
         : ((options['body_types'] as List<dynamic>?)
-                ?.map((e) => e as String)
-                .toList() ??
-            []);
-    final colors = (options['colors'] as List<dynamic>?)
+                  ?.map((e) => e as String)
+                  .toList() ??
+              []);
+    final colors =
+        (options['colors'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
         [];
     final assemblies = filteredAssemblies;
-    final cities = (options['cities'] as List<dynamic>?)
+    final cities =
+        (options['cities'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
         [];
@@ -138,110 +141,6 @@ class AndroidPredictLayout extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── TOP HEADER GRADIENT BANNER ──
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
-              ),
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: AppColors.headerGradient,
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: -40,
-                      right: -30,
-                      child: const _PredictCircle(140),
-                    ),
-                    Positioned(
-                      bottom: -30,
-                      left: -20,
-                      child: const _PredictCircle(100),
-                    ),
-                    Positioned(
-                      bottom: -40,
-                      right: 75,
-                      child: const _PredictCircle(90),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 56, 20, 28),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              InkWell(
-                                onTap: () => Navigator.pop(context),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        AppColors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.arrow_back_rounded,
-                                    color: AppColors.white,
-                                    size: 22,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              const Text(
-                                "Predict Car Price",
-                                style: TextStyle(
-                                  color: AppColors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22,
-                                ),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color:
-                                      AppColors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: const [
-                                    Icon(Icons.auto_awesome,
-                                        size: 14, color: Colors.amber),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      "AI Powered",
-                                      style: TextStyle(
-                                        color: AppColors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Provide accurate details below to estimate current market value.",
-                            style: TextStyle(
-                              color: AppColors.white.withValues(alpha: 0.85),
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
 
             // ── FORM CONTAINER ──
             Padding(
@@ -379,9 +278,7 @@ class AndroidPredictLayout extends StatelessWidget {
                         icon: Icons.location_city_rounded,
                       ),
                       const SizedBox(height: 14),
-                      PredictMileageInput(
-                        controller: mileageController,
-                      ),
+                      PredictMileageInput(controller: mileageController),
                     ],
                   ),
 
@@ -422,15 +319,20 @@ class AndroidPredictLayout extends StatelessWidget {
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
-                                Icon(Icons.analytics_rounded,
-                                    color: AppColors.white, size: 22),
+                                Icon(
+                                  Icons.analytics_rounded,
+                                  color: AppColors.white,
+                                  size: 22,
+                                ),
                                 SizedBox(width: 10),
-                                Text(
-                                  'Calculate Market Price',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.white,
+                                Flexible(
+                                  child: Text(
+                                    'Calculate Market Price',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.white,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -490,12 +392,14 @@ class _SectionCard extends StatelessWidget {
                 child: Icon(icon, size: 18, color: AppColors.primary),
               ),
               const SizedBox(width: 10),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
                 ),
               ),
             ],
@@ -503,23 +407,6 @@ class _SectionCard extends StatelessWidget {
           const SizedBox(height: 16),
           ...children,
         ],
-      ),
-    );
-  }
-}
-
-class _PredictCircle extends StatelessWidget {
-  final double size;
-  const _PredictCircle(this.size);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.white.withValues(alpha: 0.06),
       ),
     );
   }

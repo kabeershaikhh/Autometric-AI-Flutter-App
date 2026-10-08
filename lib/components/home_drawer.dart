@@ -5,7 +5,8 @@ import 'package:image_picker/image_picker.dart';
 
 import '../constants/app_colors.dart';
 import '../servers/user_service.dart';
-import 'settings_drawer.dart';
+import 'app_navigation.dart';
+import 'logout_confirmation.dart';
 
 /// Side drawer for profile management.
 /// Used by BOTH Android and Web layouts (opened via endDrawer).
@@ -27,8 +28,7 @@ class HomeDrawer extends StatelessWidget {
   });
 
   /// Whether the user currently has a profile photo.
-  bool get _hasPhoto =>
-      photoBase64 != null && photoBase64!.isNotEmpty;
+  bool get _hasPhoto => photoBase64 != null && photoBase64!.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -46,11 +46,9 @@ class HomeDrawer extends StatelessWidget {
         top: false,
         child: Column(
           children: [
-
             //////////////////////////////////////
             /// PURPLE HEADER with decorative circles
             //////////////////////////////////////
-
             ClipRRect(
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
@@ -64,21 +62,13 @@ class HomeDrawer extends StatelessWidget {
                 child: Stack(
                   children: [
                     // Smooth, large decorative circles like rest of the app
-                    Positioned(
-                      top: -20,
-                      right: -20,
-                      child: _DrawerCircle(100),
-                    ),
+                    Positioned(top: -20, right: -20, child: _DrawerCircle(100)),
                     Positioned(
                       bottom: -50,
                       left: -40,
                       child: _DrawerCircle(120),
                     ),
-                    Positioned(
-                      top: 0,
-                      left: -40,
-                      child: _DrawerCircle(90),
-                    ),
+                    Positioned(top: 0, left: -40, child: _DrawerCircle(90)),
 
                     // Content with inner padding
                     Padding(
@@ -94,8 +84,9 @@ class HomeDrawer extends StatelessWidget {
                                 children: [
                                   CircleAvatar(
                                     radius: 42,
-                                    backgroundColor:
-                                        AppColors.white.withValues(alpha: 0.20),
+                                    backgroundColor: AppColors.white.withValues(
+                                      alpha: 0.20,
+                                    ),
                                     backgroundImage: photoBytes != null
                                         ? MemoryImage(photoBytes)
                                         : null,
@@ -119,7 +110,9 @@ class HomeDrawer extends StatelessWidget {
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.15),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.15,
+                                            ),
                                             blurRadius: 6,
                                           ),
                                         ],
@@ -169,7 +162,6 @@ class HomeDrawer extends StatelessWidget {
             //////////////////////////////////////
             /// SCROLLABLE MENU ITEMS
             //////////////////////////////////////
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(top: 12),
@@ -209,7 +201,6 @@ class HomeDrawer extends StatelessWidget {
             //////////////////////////////////////
             /// LOGOUT (pinned at bottom)
             //////////////////////////////////////
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Divider(color: AppColors.divider),
@@ -221,18 +212,10 @@ class HomeDrawer extends StatelessWidget {
               iconColor: AppColors.error,
               textColor: AppColors.error,
               onTap: () async {
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  ),
-                );
-                await Future.delayed(const Duration(milliseconds: 600));
-                if (context.mounted) {
-                  Navigator.pop(context);
+                if (await confirmLogout(context) && context.mounted) {
+                  Navigator.of(context).pop(); // Close the profile drawer.
+                  onLogout();
                 }
-                onLogout();
               },
             ),
 
@@ -243,13 +226,11 @@ class HomeDrawer extends StatelessWidget {
     );
   }
 
-  /// Opens the Settings drawer (pushes on top of the current drawer).
+  /// Closes the profile drawer and opens the full-screen settings page.
   void _openSettings(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const SettingsDrawer(),
-      ),
-    );
+    final navigation = AppNavigation.of(context);
+    Navigator.of(context).pop();
+    navigation.onSelect(4);
   }
 
   /// Picks an image from gallery and uploads as base64 to Firestore.
@@ -362,7 +343,9 @@ class HomeDrawer extends StatelessWidget {
                           try {
                             await userService.deleteProfilePhoto();
                             if (context.mounted) {
-                              Navigator.of(context).popUntil((route) => route.isFirst);
+                              Navigator.of(
+                                context,
+                              ).popUntil((route) => route.isFirst);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Profile photo removed."),
@@ -466,11 +449,14 @@ class HomeDrawer extends StatelessWidget {
                             try {
                               await userService.updateUserName(newName);
                               if (context.mounted) {
-                                Navigator.of(context)
-                                    .popUntil((route) => route.isFirst);
+                                Navigator.of(
+                                  context,
+                                ).popUntil((route) => route.isFirst);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text("Name updated successfully! ✓"),
+                                    content: Text(
+                                      "Name updated successfully! ✓",
+                                    ),
                                     behavior: SnackBarBehavior.floating,
                                     backgroundColor: AppColors.primary,
                                   ),
@@ -558,9 +544,7 @@ class _DrawerItem extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 10),
         horizontalTitleGap: 12,
         minLeadingWidth: 38,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         leading: Container(
           width: 38,
           height: 38,

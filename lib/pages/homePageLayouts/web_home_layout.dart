@@ -1,20 +1,14 @@
-import 'dart:typed_data';
+import '../../components/app_navigation.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../auth/auth_prompt.dart';
-import '../../auth/auth_flow_page.dart';
 import '../../components/feature_card.dart';
-import '../../components/home_drawer.dart';
 import '../../components/market_card.dart';
 import '../../components/recent_tile.dart';
-import '../../components/web_sidebar.dart';
 import '../../constants/app_colors.dart';
 import '../../servers/user_service.dart';
-import '../history_page.dart';
-import '../predict_page.dart';
 
 /// Web dashboard home layout (displayed when kIsWeb && width >= 950).
 ///
@@ -55,47 +49,19 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
 
   bool get _isGuest => FirebaseAuth.instance.currentUser == null;
 
-  void _openProfileDrawer() {
-    _scaffoldKey.currentState?.openEndDrawer();
+  String? _evaluationUid;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _evaluations;
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _evaluationStream() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (_evaluations == null || uid != _evaluationUid) {
+      _evaluationUid = uid;
+      _evaluations = widget.userService.evaluationsStream();
+    }
+    return _evaluations!;
   }
 
-  Future<void> _openProfile() async {
-    if (!await requireAuthentication(context, feature: 'manage your profile') ||
-        !mounted) {
-      return;
-    }
-    _openProfileDrawer();
-  }
-
-  Future<void> _openHistory() async {
-    if (!await requireAuthentication(
-          context,
-          feature: 'view evaluation history',
-        ) ||
-        !mounted) {
-      return;
-    }
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HistoryPage(
-          userName: widget.userName,
-          userEmail: widget.userEmail,
-          photoBase64: widget.photoBase64,
-          userService: widget.userService,
-          onLogout: widget.onLogout,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openMaintenance() async {
-    if (!await requireAuthentication(context, feature: 'use Maintenance') ||
-        !mounted) {
-      return;
-    }
-    _showFeatureNotAvailableSnackBar(context);
-  }
+  Future<void> _openHistory() => AppNavigation.select(context, 3);
 
   @override
   Widget build(BuildContext context) {
@@ -106,18 +72,6 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
       ///////////////////////////////////////////////////////
       /// END DRAWER — same HomeDrawer as Android
       ///////////////////////////////////////////////////////
-      endDrawer: _isGuest
-          ? null
-          : HomeDrawer(
-              onLogout: () {
-                Navigator.pop(context);
-                widget.onLogout();
-              },
-              userName: widget.userName,
-              userEmail: widget.userEmail,
-              photoBase64: widget.photoBase64,
-              userService: widget.userService,
-            ),
 
       ///////////////////////////////////////////////////////
       /// BODY — Sidebar + Main Content
@@ -127,71 +81,6 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
           ///////////////////////////////////////////////////////
           /// LEFT SIDEBAR
           ///////////////////////////////////////////////////////
-          WebSidebar(
-            selectedIndex: selectedIndex,
-            onItemTap: (index) {
-              if (index == 0) {
-                setState(() {
-                  selectedIndex = 0;
-                });
-              } else if (index == 1) {
-                setState(() {
-                  selectedIndex = 1;
-                });
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PredictPage(
-                      userName: widget.userName,
-                      userEmail: widget.userEmail,
-                      photoBase64: widget.photoBase64,
-                      userService: widget.userService,
-                      onLogout: widget.onLogout,
-                    ),
-                  ),
-                ).then((_) {
-                  // Reset selection back to Dashboard when we return
-                  setState(() {
-                    selectedIndex = 0;
-                  });
-                });
-              } else if (index == 2) {
-                setState(() {
-                  selectedIndex = 0;
-                });
-                _openMaintenance();
-              } else if (index == 3) {
-                setState(() {
-                  selectedIndex = 3;
-                });
-                _openHistory().then((_) {
-                  setState(() {
-                    selectedIndex = 0;
-                  });
-                });
-              }
-            },
-            onLogout: () async {
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
-              );
-              await Future.delayed(const Duration(milliseconds: 600));
-              if (context.mounted) {
-                Navigator.pop(context);
-              }
-              widget.onLogout();
-            },
-            onProfileTap: _openProfile,
-            isGuest: _isGuest,
-            onLogin: () => Navigator.of(context).push<bool>(
-              MaterialPageRoute(builder: (_) => const AuthFlowPage()),
-            ),
-            photoBase64: widget.photoBase64,
-          ),
 
           ///////////////////////////////////////////////////////
           /// MAIN CONTENT AREA
@@ -200,7 +89,6 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
             child: Column(
               children: [
                 /// Top Bar
-                _buildTopBar(),
 
                 /// Scrollable Content
                 Expanded(
@@ -302,81 +190,6 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
   /// TOP BAR
   ///////////////////////////////////////////////////////
 
-  Widget _buildTopBar() {
-    final Uint8List? photoBytes = UserService.decodePhoto(widget.photoBase64);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Welcome text
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Welcome back, ${widget.userName}! 👋",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  "Let's evaluate your car today",
-                  style: TextStyle(color: AppColors.textGrey, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-
-          // Notification
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.notifications_none_rounded,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          // Profile avatar — opens drawer
-          GestureDetector(
-            onTap: _openProfile,
-            child: CircleAvatar(
-              radius: 22,
-              backgroundColor: AppColors.primarySurface,
-              backgroundImage: photoBytes != null
-                  ? MemoryImage(photoBytes)
-                  : null,
-              child: photoBytes == null
-                  ? const Icon(Icons.person, color: AppColors.primary)
-                  : null,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   ///////////////////////////////////////////////////////
   /// QUICK ACTIONS (reuses FeatureCard)
   ///////////////////////////////////////////////////////
@@ -403,18 +216,7 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                   icon: Icons.analytics_outlined,
                   title: "Predict\nPrice",
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PredictPage(
-                          userName: widget.userName,
-                          userEmail: widget.userEmail,
-                          photoBase64: widget.photoBase64,
-                          userService: widget.userService,
-                          onLogout: widget.onLogout,
-                        ),
-                      ),
-                    );
+                    AppNavigation.select(context, 1);
                   },
                 ),
               ),
@@ -426,7 +228,7 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                 child: FeatureCard(
                   icon: Icons.build_outlined,
                   title: "Maintenance",
-                  onTap: _openMaintenance,
+                  onTap: () => AppNavigation.select(context, 2),
                 ),
               ),
             ),
@@ -436,24 +238,13 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
     );
   }
 
-  void _showFeatureNotAvailableSnackBar(BuildContext context) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Feature is currently not available"),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
   ///////////////////////////////////////////////////////
   /// EVALUATIONS LIST — REAL-TIME FROM FIRESTORE
   ///////////////////////////////////////////////////////
 
   Widget _buildEvaluationsList() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: widget.userService.evaluationsStream(),
+      stream: _evaluationStream(),
       builder: (context, snapshot) {
         // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -487,18 +278,7 @@ class _WebHomeLayoutState extends State<WebHomeLayout> {
                 title: title,
                 price: price,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HistoryPage(
-                        userName: widget.userName,
-                        userEmail: widget.userEmail,
-                        photoBase64: widget.photoBase64,
-                        userService: widget.userService,
-                        onLogout: widget.onLogout,
-                      ),
-                    ),
-                  );
+                  AppNavigation.select(context, 3);
                 },
               );
             }).toList(),

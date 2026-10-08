@@ -1,18 +1,13 @@
+import '../../components/app_navigation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../auth/auth_prompt.dart';
 import '../../components/feature_card.dart';
-import '../../components/home_app_bar.dart';
-import '../../components/home_bottom_nav.dart';
-import '../../components/home_drawer.dart';
 import '../../components/market_card.dart';
 import '../../components/recent_tile.dart';
 import '../../constants/app_colors.dart';
 import '../../servers/user_service.dart';
-import '../history_page.dart';
-import '../predict_page.dart';
 
 /// Android / mobile home layout.
 ///
@@ -51,43 +46,19 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
 
   bool get _isGuest => FirebaseAuth.instance.currentUser == null;
 
-  Future<void> _openHistory() async {
-    if (!await requireAuthentication(
-          context,
-          feature: 'view evaluation history',
-        ) ||
-        !mounted) {
-      return;
+  String? _evaluationUid;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _evaluations;
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _evaluationStream() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (_evaluations == null || uid != _evaluationUid) {
+      _evaluationUid = uid;
+      _evaluations = widget.userService.evaluationsStream();
     }
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HistoryPage(
-          userName: widget.userName,
-          userEmail: widget.userEmail,
-          photoBase64: widget.photoBase64,
-          userService: widget.userService,
-          onLogout: widget.onLogout,
-        ),
-      ),
-    );
+    return _evaluations!;
   }
 
-  Future<void> _openMaintenance() async {
-    if (!await requireAuthentication(context, feature: 'use Maintenance') ||
-        !mounted) {
-      return;
-    }
-    _showFeatureNotAvailableSnackBar(context);
-  }
-
-  Future<void> _openProfile() async {
-    if (!await requireAuthentication(context, feature: 'manage your profile') ||
-        !mounted) {
-      return;
-    }
-    scaffoldKey.currentState?.openEndDrawer();
-  }
+  Future<void> _openHistory() => AppNavigation.select(context, 3);
 
   @override
   Widget build(BuildContext context) {
@@ -98,18 +69,6 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
       ///////////////////////////////////////////////////////
       /// DRAWER
       ///////////////////////////////////////////////////////
-      endDrawer: _isGuest
-          ? null
-          : HomeDrawer(
-              onLogout: () {
-                Navigator.pop(context);
-                widget.onLogout();
-              },
-              userName: widget.userName,
-              userEmail: widget.userEmail,
-              photoBase64: widget.photoBase64,
-              userService: widget.userService,
-            ),
 
       ///////////////////////////////////////////////////////
       /// BODY
@@ -121,7 +80,6 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
             /////////////////////////////////////////////////////
             /// PURPLE HEADER (AppBar + Welcome)
             /////////////////////////////////////////////////////
-            _buildHeader(),
 
             /////////////////////////////////////////////////////
             /// CONTENT BODY
@@ -157,18 +115,7 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                             icon: Icons.analytics_outlined,
                             title: "Predict\nPrice",
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PredictPage(
-                                    userName: widget.userName,
-                                    userEmail: widget.userEmail,
-                                    photoBase64: widget.photoBase64,
-                                    userService: widget.userService,
-                                    onLogout: widget.onLogout,
-                                  ),
-                                ),
-                              );
+                              AppNavigation.select(context, 1);
                             },
                           ),
                         ),
@@ -180,7 +127,7 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                           child: FeatureCard(
                             icon: Icons.build_outlined,
                             title: "Maintenance",
-                            onTap: _openMaintenance,
+                            onTap: () => AppNavigation.select(context, 2),
                           ),
                         ),
                       ),
@@ -202,12 +149,14 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "Recent Evaluations",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
+                      const Expanded(
+                        child: Text(
+                          "Recent Evaluations",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                          ),
                         ),
                       ),
                       TextButton.icon(
@@ -250,71 +199,6 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
       ///////////////////////////////////////////////////////
       /// BOTTOM NAVIGATION
       ///////////////////////////////////////////////////////
-      bottomNavigationBar: HomeBottomNav(
-        currentIndex: selectedIndex,
-        onTap: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-
-          switch (index) {
-            case 0:
-              setState(() {
-                selectedIndex = 0;
-              });
-              break;
-            case 1:
-              setState(() {
-                selectedIndex = 1;
-              });
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PredictPage(
-                    userName: widget.userName,
-                    userEmail: widget.userEmail,
-                    photoBase64: widget.photoBase64,
-                    userService: widget.userService,
-                    onLogout: widget.onLogout,
-                  ),
-                ),
-              ).then((_) {
-                // Reset bottom nav to Dashboard when returning
-                setState(() {
-                  selectedIndex = 0;
-                });
-              });
-              break;
-            case 2:
-              setState(() {
-                selectedIndex = 0;
-              });
-              _openMaintenance();
-              break;
-            case 3:
-              setState(() {
-                selectedIndex = 3;
-              });
-              _openHistory().then((_) {
-                setState(() {
-                  selectedIndex = 0;
-                });
-              });
-              break;
-          }
-        },
-      ),
-    );
-  }
-
-  void _showFeatureNotAvailableSnackBar(BuildContext context) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Feature is currently not available"),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
     );
   }
 
@@ -322,119 +206,13 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
   /// PURPLE CURVED HEADER
   ///////////////////////////////////////////////////////
 
-  Widget _buildHeader() {
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        bottomLeft: Radius.circular(32),
-        bottomRight: Radius.circular(32),
-      ),
-      child: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-        child: Stack(
-          children: [
-            // Subtle decorative circles
-            Positioned(
-              top: -40,
-              right: -30,
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -30,
-              left: -20,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -40,
-              right: 75,
-              child: Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
-                ),
-              ),
-            ),
-
-            // Content
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// AppBar Row
-                    HomeAppBar(
-                      onProfileTap: _openProfile,
-                      photoBase64: widget.photoBase64,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    /// Welcome Greeting
-                    Text(
-                      "Welcome back,",
-                      style: TextStyle(
-                        color: AppColors.white.withValues(alpha: 0.8),
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "${widget.userName}! 👋",
-                            style: const TextStyle(
-                              color: AppColors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      "Let's evaluate your car today",
-                      style: TextStyle(
-                        color: AppColors.white.withValues(alpha: 0.65),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   ///////////////////////////////////////////////////////
   /// EVALUATIONS LIST — REAL-TIME FROM FIRESTORE
   ///////////////////////////////////////////////////////
 
   Widget _buildEvaluationsList() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: widget.userService.evaluationsStream(),
+      stream: _evaluationStream(),
       builder: (context, snapshot) {
         // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -466,18 +244,7 @@ class _AndroidHomeLayoutState extends State<AndroidHomeLayout> {
               title: title,
               price: price,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HistoryPage(
-                      userName: widget.userName,
-                      userEmail: widget.userEmail,
-                      photoBase64: widget.photoBase64,
-                      userService: widget.userService,
-                      onLogout: widget.onLogout,
-                    ),
-                  ),
-                );
+                AppNavigation.select(context, 3);
               },
             );
           }).toList(),

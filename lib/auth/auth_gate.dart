@@ -24,6 +24,8 @@ class _AuthGateState extends State<AuthGate> {
           return const SplashPage();
         }
 
+        if (snapshot.hasData) _guestMode = false;
+
         if (snapshot.hasData || _guestMode) {
           return HomePage(
             onLoggedOut: () {

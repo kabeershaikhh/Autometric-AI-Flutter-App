@@ -1,14 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../auth/auth_prompt.dart';
-import '../../auth/auth_flow_page.dart';
 import '../../components/predict_dropdown.dart';
 import '../../components/predict_mileage_input.dart';
-import '../../components/home_drawer.dart';
-import '../../components/web_sidebar.dart';
 import '../../constants/app_colors.dart';
 import '../../servers/user_service.dart';
-import '../history_page.dart';
 
 /// Refactored, beautified Web Predict Layout with reusable components and section cards.
 class WebPredictLayout extends StatefulWidget {
@@ -102,61 +96,6 @@ class WebPredictLayout extends StatefulWidget {
 class _WebPredictLayoutState extends State<WebPredictLayout> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  bool get _isGuest => FirebaseAuth.instance.currentUser == null;
-
-  void _openProfileDrawer() {
-    _scaffoldKey.currentState?.openEndDrawer();
-  }
-
-  Future<void> _openProfile() async {
-    if (!await requireAuthentication(context, feature: 'manage your profile') ||
-        !mounted) {
-      return;
-    }
-    _openProfileDrawer();
-  }
-
-  Future<void> _openMaintenance() async {
-    if (!await requireAuthentication(context, feature: 'use Maintenance') ||
-        !mounted) {
-      return;
-    }
-    _showUnavailable();
-  }
-
-  Future<void> _openHistory() async {
-    if (!await requireAuthentication(
-          context,
-          feature: 'view evaluation history',
-        ) ||
-        !mounted) {
-      return;
-    }
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => HistoryPage(
-          userName: widget.userName,
-          userEmail: widget.userEmail,
-          photoBase64: widget.photoBase64,
-          userService: widget.userService,
-          onLogout: widget.onLogout,
-        ),
-      ),
-    );
-  }
-
-  void _showUnavailable() {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Feature is currently not available'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (widget.isLoadingOptions) {
@@ -219,46 +158,15 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.scaffoldBg,
-      endDrawer: _isGuest
-          ? null
-          : HomeDrawer(
-              onLogout: () {
-                Navigator.pop(context);
-                widget.onLogout();
-              },
-              userName: widget.userName,
-              userEmail: widget.userEmail,
-              photoBase64: widget.photoBase64,
-              userService: widget.userService,
-            ),
+
       body: Row(
         children: [
           // ── LEFT SIDEBAR ──
-          WebSidebar(
-            selectedIndex: 1, // Highlight "Predict Price"
-            onItemTap: (index) {
-              if (index == 0) {
-                Navigator.pop(context); // Return to Home
-              } else if (index == 2) {
-                _openMaintenance();
-              } else if (index == 3) {
-                _openHistory();
-              }
-            },
-            onLogout: widget.onLogout,
-            onProfileTap: _openProfile,
-            isGuest: _isGuest,
-            onLogin: () => Navigator.of(context).push<bool>(
-              MaterialPageRoute(builder: (_) => const AuthFlowPage()),
-            ),
-            photoBase64: widget.photoBase64,
-          ),
 
           // ── MAIN CONTENT AREA ──
           Expanded(
             child: Column(
               children: [
-                _buildTopBar(),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
@@ -631,92 +539,6 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
   }
 
   /// Top app bar for Web Layout
-  Widget _buildTopBar() {
-    return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: Border(bottom: BorderSide(color: AppColors.divider)),
-      ),
-      child: Row(
-        children: [
-          Row(
-            children: [
-              Text(
-                "Home",
-                style: TextStyle(color: AppColors.textGrey, fontSize: 14),
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(
-                  Icons.chevron_right,
-                  size: 16,
-                  color: AppColors.textGrey,
-                ),
-              ),
-              const Text(
-                "Predict Price",
-                style: TextStyle(
-                  color: AppColors.textDark,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.textDark,
-                ),
-              ),
-              const SizedBox(width: 12),
-              InkWell(
-                onTap: _openProfile,
-                borderRadius: BorderRadius.circular(20),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: AppColors.primarySurface,
-                      child: Text(
-                        widget.userName.isNotEmpty
-                            ? widget.userName[0].toUpperCase()
-                            : 'U',
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      widget.userName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.arrow_drop_down,
-                      color: AppColors.textGrey,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /// Section container for Web Layout

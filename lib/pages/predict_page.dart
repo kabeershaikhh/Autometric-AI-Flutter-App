@@ -71,6 +71,7 @@ class _PredictPageState extends State<PredictPage> {
   Future<void> _loadOptions() async {
     try {
       final opts = await PredictionService.fetchOptions();
+      if (!mounted) return;
       setState(() {
         options = opts;
         isLoadingOptions = false;
@@ -81,6 +82,7 @@ class _PredictPageState extends State<PredictPage> {
         _filteredAssemblies = _getStringList('assemblies');
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isLoadingOptions = false;
       });
@@ -88,7 +90,9 @@ class _PredictPageState extends State<PredictPage> {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Failed to load options. Make sure backend is connected.'),
+            content: Text(
+              'Failed to load options. Make sure backend is connected.',
+            ),
             behavior: SnackBarBehavior.floating,
             duration: Duration(seconds: 3),
           ),
@@ -112,14 +116,16 @@ class _PredictPageState extends State<PredictPage> {
     // 1. Try variant-specific constraint key first
     if (variant != null) {
       final bmtKey = '${brand}_${model}_$variant';
-      if (constraints.containsKey(bmtKey) && constraints[bmtKey] is Map<String, dynamic>) {
+      if (constraints.containsKey(bmtKey) &&
+          constraints[bmtKey] is Map<String, dynamic>) {
         return constraints[bmtKey] as Map<String, dynamic>;
       }
     }
 
     // 2. Fallback to model-level constraint key
     final bmKey = '${brand}_$model';
-    if (constraints.containsKey(bmKey) && constraints[bmKey] is Map<String, dynamic>) {
+    if (constraints.containsKey(bmKey) &&
+        constraints[bmKey] is Map<String, dynamic>) {
       return constraints[bmKey] as Map<String, dynamic>;
     }
     return null;
@@ -229,15 +235,22 @@ class _PredictPageState extends State<PredictPage> {
       List<int>? matchedEngines;
       for (final range in ranges) {
         final r = range as Map<String, dynamic>;
-        final years = (r['years'] as List<dynamic>).map((e) => (e as num).toInt()).toList();
+        final years = (r['years'] as List<dynamic>)
+            .map((e) => (e as num).toInt())
+            .toList();
         if (years.length == 2 && year >= years[0] && year <= years[1]) {
-          matchedEngines = (r['engines'] as List<dynamic>).map((e) => (e as num).toInt()).toList();
+          matchedEngines = (r['engines'] as List<dynamic>)
+              .map((e) => (e as num).toInt())
+              .toList();
           break;
         }
       }
       final rawAllEngines = c['all_engines'];
-      _filteredEngines = matchedEngines ??
-          (rawAllEngines is List ? rawAllEngines.map((e) => (e as num).toInt()).toList() : _getIntList('engine_capacities'));
+      _filteredEngines =
+          matchedEngines ??
+          (rawAllEngines is List
+              ? rawAllEngines.map((e) => (e as num).toInt()).toList()
+              : _getIntList('engine_capacities'));
     }
 
     // Find matching transmission range for the selected year
@@ -247,15 +260,22 @@ class _PredictPageState extends State<PredictPage> {
       List<String>? matchedTrans;
       for (final range in ranges) {
         final r = range as Map<String, dynamic>;
-        final years = (r['years'] as List<dynamic>).map((e) => (e as num).toInt()).toList();
+        final years = (r['years'] as List<dynamic>)
+            .map((e) => (e as num).toInt())
+            .toList();
         if (years.length == 2 && year >= years[0] && year <= years[1]) {
-          matchedTrans = (r['transmissions'] as List<dynamic>).map((e) => e.toString()).toList();
+          matchedTrans = (r['transmissions'] as List<dynamic>)
+              .map((e) => e.toString())
+              .toList();
           break;
         }
       }
       final rawAllTrans = c['all_transmissions'];
-      _filteredTransmissions = matchedTrans ??
-          (rawAllTrans is List ? rawAllTrans.map((e) => e.toString()).toList() : _getStringList('transmissions'));
+      _filteredTransmissions =
+          matchedTrans ??
+          (rawAllTrans is List
+              ? rawAllTrans.map((e) => e.toString()).toList()
+              : _getStringList('transmissions'));
     }
 
     // Auto-select if only one option available
@@ -267,7 +287,8 @@ class _PredictPageState extends State<PredictPage> {
 
     if (_filteredTransmissions.length == 1) {
       transmission = _filteredTransmissions.first;
-    } else if (transmission != null && !_filteredTransmissions.contains(transmission)) {
+    } else if (transmission != null &&
+        !_filteredTransmissions.contains(transmission)) {
       transmission = null;
     }
   }
@@ -304,10 +325,13 @@ class _PredictPageState extends State<PredictPage> {
 
       // Auto-select variant if only 1 variant exists for this car model
       if (newModel != null && brand != null) {
-        final variantsByBrandModel = options['variants_by_brand_model'] as Map<String, dynamic>? ?? {};
+        final variantsByBrandModel =
+            options['variants_by_brand_model'] as Map<String, dynamic>? ?? {};
         final key = "${brand}_$newModel";
         if (variantsByBrandModel.containsKey(key)) {
-          final vList = (variantsByBrandModel[key] as List<dynamic>).map((e) => e.toString()).toList();
+          final vList = (variantsByBrandModel[key] as List<dynamic>)
+              .map((e) => e.toString())
+              .toList();
           if (vList.length == 1) {
             variant = vList.first;
           }
@@ -382,6 +406,7 @@ class _PredictPageState extends State<PredictPage> {
       };
 
       final result = await PredictionService.predictPrice(data);
+      if (!mounted) return;
 
       setState(() {
         isPredicting = false;
@@ -431,7 +456,7 @@ class _PredictPageState extends State<PredictPage> {
       backgroundColor: AppColors.scaffoldBg,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          if (kIsWeb && constraints.maxWidth >= 950) {
+          if (kIsWeb && MediaQuery.sizeOf(context).width >= 950) {
             return WebPredictLayout(
               userName: widget.userName,
               userEmail: widget.userEmail,

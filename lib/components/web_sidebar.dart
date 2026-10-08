@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
+import 'logout_confirmation.dart';
 
 /// Permanent sidebar navigation for the web dashboard layout.
 /// Shows logo, nav items, profile avatar (tappable), and logout.
@@ -129,7 +130,14 @@ class WebSidebar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(14),
-                        onTap: isGuest ? onLogin : onLogout,
+                        onTap: isGuest
+                            ? onLogin
+                            : () async {
+                                if (await confirmLogout(context) &&
+                                    context.mounted) {
+                                  onLogout();
+                                }
+                              },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
@@ -233,18 +241,22 @@ class _SidebarItem extends StatelessWidget {
                   size: 22,
                 ),
                 const SizedBox(width: 14),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    fontSize: 15,
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
                 if (isSelected) ...[
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Container(
                     width: 6,
                     height: 6,

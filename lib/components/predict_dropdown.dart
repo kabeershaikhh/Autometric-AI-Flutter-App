@@ -43,12 +43,14 @@ class PredictDropdown<T> extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
               ],
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: disabled ? AppColors.iconGrey : AppColors.textDark,
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: disabled ? AppColors.iconGrey : AppColors.textDark,
+                  ),
                 ),
               ),
             ],
@@ -76,14 +78,16 @@ class PredictDropdown<T> extends StatelessWidget {
             color: AppColors.textDark,
           ),
           decoration: InputDecoration(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             filled: true,
             fillColor: disabled
                 ? Colors.grey.shade100
                 : (isSelected
-                    ? AppColors.primarySurface.withValues(alpha: 0.4)
-                    : AppColors.white),
+                      ? AppColors.primarySurface.withValues(alpha: 0.4)
+                      : AppColors.white),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -113,10 +117,7 @@ class PredictDropdown<T> extends StatelessWidget {
               .map(
                 (item) => DropdownMenuItem<T>(
                   value: item,
-                  child: Text(
-                    item.toString(),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(item.toString(), overflow: TextOverflow.ellipsis),
                 ),
               )
               .toList(),
