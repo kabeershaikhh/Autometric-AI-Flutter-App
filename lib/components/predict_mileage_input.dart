@@ -6,11 +6,13 @@ import '../constants/app_colors.dart';
 class PredictMileageInput extends StatelessWidget {
   final TextEditingController controller;
   final String label;
+  final int? maxMileage;
 
   const PredictMileageInput({
     super.key,
     required this.controller,
     this.label = "Mileage",
+    this.maxMileage,
   });
 
   @override
@@ -50,6 +52,14 @@ class PredictMileageInput extends StatelessWidget {
           ),
           decoration: InputDecoration(
             hintText: "e.g. 45000",
+            helperText: maxMileage != null
+                ? "Max: ${maxMileage.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} km"
+                : null,
+            helperStyle: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade600,
+            ),
             hintStyle: const TextStyle(
               fontSize: 14,
               color: AppColors.textGrey,

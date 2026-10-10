@@ -10,6 +10,7 @@ import '../components/home_bottom_nav.dart';
 import '../components/home_drawer.dart';
 import '../components/web_page_header.dart';
 import '../components/web_sidebar.dart';
+import '../components/responsive_shell_body.dart';
 import '../constants/app_colors.dart';
 import '../servers/user_service.dart';
 import 'history_page.dart';
@@ -17,6 +18,9 @@ import 'homePageLayouts/android_home_layout.dart';
 import 'homePageLayouts/web_home_layout.dart';
 import 'predict_page.dart';
 import 'settings_page.dart';
+import '../maintenance/controller.dart';
+import '../maintenance/maintenance_page.dart';
+import '../maintenance/platform_notifications.dart' as notifications;
 
 /// Owns the persistent header, navigation, profile drawer and tab state.
 class AppShell extends StatefulWidget {
@@ -39,7 +43,72 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
+  final _maintenance = MaintenanceController();
+  final _maintenanceKey = GlobalKey<MaintenancePageState>();
+  bool _openingReminder = false;
+  bool _checkedLaunch = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _maintenance.addListener(_checkReminderLaunch);
+    _maintenance.start(FirebaseAuth.instance.currentUser?.uid);
+  }
+
+  @override
+  void didUpdateWidget(covariant AppShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _maintenance.connect(FirebaseAuth.instance.currentUser?.uid);
+  }
+
+  void _checkReminderLaunch() {
+    if (_maintenance.loading ||
+        _maintenance.repository == null ||
+        _checkedLaunch ||
+        _openingReminder) {
+      return;
+    }
+    _checkedLaunch = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openReminder());
+  }
+
+  Future<void> _openReminder() async {
+    if (!mounted || _openingReminder) return;
+    _openingReminder = true;
+    try {
+      final id = await notifications.notificationVehicle();
+      if (id != null &&
+          mounted &&
+          !_guest &&
+          _maintenance.vehicles.any((v) => v.id == id)) {
+        await _select(2);
+        await WidgetsBinding.instance.endOfFrame;
+        _maintenanceKey.currentState?.openVehicle(id);
+      }
+    } catch (_) {
+      /* Missing platform support must not block navigation. */
+    } finally {
+      _openingReminder = false;
+    }
+  }
+
+  Future<void> _openReminderCentre() async {
+    await _select(2);
+    if (!mounted || _guest || _selected != 2) return;
+    await WidgetsBinding.instance.endOfFrame;
+    _maintenanceKey.currentState?.openReminders();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _maintenance.refresh();
+      _openReminder();
+    }
+  }
+
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _controller = PageController();
   final _visited = <int>{0};
@@ -101,6 +170,9 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _maintenance.removeListener(_checkReminderLaunch);
+    _maintenance.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -115,6 +187,7 @@ class _AppShellState extends State<AppShell> {
             photoBase64: widget.photoBase64,
             onHome: () => _select(0),
             onProfile: _profile,
+            onNotifications: _openReminderCentre,
           )
         : _ShellHeader(
             title: _selected == 0
@@ -123,6 +196,7 @@ class _AppShellState extends State<AppShell> {
             subtitle: _subtitles[_selected],
             photoBase64: widget.photoBase64,
             onProfile: _profile,
+            onNotifications: _openReminderCentre,
           );
     final content = Column(
       children: [
@@ -151,7 +225,14 @@ class _AppShellState extends State<AppShell> {
       child: PopScope(
         canPop: _selected == 0,
         onPopInvokedWithResult: (didPop, result) {
-          if (!didPop) _select(0);
+          if (!didPop) {
+            if (_selected == 2 &&
+                (_maintenanceKey.currentState?.canGoBack ?? false)) {
+              _maintenanceKey.currentState!.goBack();
+            } else {
+              _select(0);
+            }
+          }
         },
         child: Scaffold(
           key: _scaffoldKey,
@@ -165,24 +246,22 @@ class _AppShellState extends State<AppShell> {
                   photoBase64: widget.photoBase64,
                   userService: widget.userService,
                 ),
-          body: wide
-              ? Row(
-                  children: [
-                    WebSidebar(
-                      selectedIndex: _selected,
-                      onItemTap: _select,
-                      onLogout: widget.onLogout,
-                      onProfileTap: _profile,
-                      isGuest: _guest,
-                      onLogin: () => Navigator.of(context).push<bool>(
-                        MaterialPageRoute(builder: (_) => const AuthFlowPage()),
-                      ),
-                      photoBase64: widget.photoBase64,
+          body: ResponsiveShellBody(
+            sidebar: wide
+                ? WebSidebar(
+                    selectedIndex: _selected,
+                    onItemTap: _select,
+                    onLogout: widget.onLogout,
+                    onProfileTap: _profile,
+                    isGuest: _guest,
+                    onLogin: () => Navigator.of(context).push<bool>(
+                      MaterialPageRoute(builder: (_) => const AuthFlowPage()),
                     ),
-                    Expanded(child: content),
-                  ],
-                )
-              : content,
+                    photoBase64: widget.photoBase64,
+                  )
+                : null,
+            content: content,
+          ),
           bottomNavigationBar: wide
               ? null
               : HomeBottomNav(currentIndex: _selected, onTap: _select),
@@ -218,33 +297,7 @@ class _AppShellState extends State<AppShell> {
           onLogout: widget.onLogout,
         );
       case 2:
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.build_outlined, size: 56, color: AppColors.primary),
-                SizedBox(height: 20),
-                Text(
-                  'Maintenance is coming soon',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Vehicle maintenance tools will be available here.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textGrey),
-                ),
-              ],
-            ),
-          ),
-        );
+        return MaintenancePage(key: _maintenanceKey, controller: _maintenance);
       case 3:
         return HistoryPage(
           userName: widget.userName,
@@ -282,11 +335,13 @@ class _ShellHeader extends StatelessWidget {
   final String subtitle;
   final String photoBase64;
   final VoidCallback onProfile;
+  final VoidCallback onNotifications;
   const _ShellHeader({
     required this.title,
     required this.subtitle,
     required this.photoBase64,
     required this.onProfile,
+    required this.onNotifications,
   });
 
   @override
@@ -308,7 +363,11 @@ class _ShellHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                HomeAppBar(onProfileTap: onProfile, photoBase64: photoBase64),
+                HomeAppBar(
+                  onProfileTap: onProfile,
+                  photoBase64: photoBase64,
+                  onNotifications: onNotifications,
+                ),
                 const SizedBox(height: 18),
                 Text(
                   title,

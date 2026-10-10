@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'account_dialog.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../constants/app_colors.dart';
@@ -311,17 +312,10 @@ class HomeDrawer extends StatelessWidget {
         bool isRemoving = false;
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              title: const Text(
-                "Remove Photo",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
-                ),
-              ),
+            return AccountDialog(
+              title: 'Remove Photo',
+              icon: Icons.delete_outline_rounded,
+              busy: isRemoving,
               content: const Text(
                 "Are you sure you want to remove your profile picture?",
               ),
@@ -362,9 +356,9 @@ class HomeDrawer extends StatelessWidget {
                           }
                         },
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.error,
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   child: isRemoving
@@ -396,17 +390,10 @@ class HomeDrawer extends StatelessWidget {
         bool isSaving = false;
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              title: const Text(
-                "Change Name",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
-                ),
-              ),
+            return AccountDialog(
+              title: 'Change Name',
+              icon: Icons.person_outline_rounded,
+              busy: isSaving,
               content: TextField(
                 controller: controller,
                 autofocus: true,
@@ -476,7 +463,7 @@ class HomeDrawer extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   child: isSaving

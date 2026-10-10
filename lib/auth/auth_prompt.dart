@@ -147,6 +147,9 @@ Future<bool> requireAuthentication(
                         backgroundColor: AppColors.primarySurface,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18),
+                          side: const BorderSide(
+                            color: AppColors.primaryBorder,
+                          ),
                         ),
                       ),
                       onPressed: () => Navigator.pop(dialogContext, false),

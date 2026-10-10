@@ -1,0 +1,9 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    {"collectionGroup": "attachments", "fieldPath": "base64", "indexes": []},
+    {"collectionGroup": "maintenanceVehicles", "fieldPath": "schedules", "indexes": []},
+    {"collectionGroup": "serviceRecords", "fieldPath": "notes", "indexes": []},
+    {"collectionGroup": "serviceRecords", "fieldPath": "intervals", "indexes": []}
+  ]
+}

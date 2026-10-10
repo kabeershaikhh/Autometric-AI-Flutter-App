@@ -76,6 +76,9 @@ Future<bool> confirmLogout(BuildContext context) async {
                           backgroundColor: AppColors.primarySurface,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
+                            side: const BorderSide(
+                              color: AppColors.primaryBorder,
+                            ),
                           ),
                         ),
                         onPressed: () => Navigator.pop(dialogContext, false),

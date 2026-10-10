@@ -8,6 +8,12 @@ class MyTextField extends StatefulWidget {
   final TextInputType keyboardType;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onChanged;
+  final InputDecoration? decoration;
+  final FormFieldValidator<String>? validator;
+  final int? maxLength;
+  final int? minLines;
+  final int maxLines;
+  final bool useFormField;
 
   const MyTextField({
     super.key,
@@ -18,6 +24,12 @@ class MyTextField extends StatefulWidget {
     this.keyboardType = TextInputType.text,
     this.textInputAction,
     this.onChanged,
+    this.decoration,
+    this.validator,
+    this.maxLength,
+    this.minLines,
+    this.maxLines = 1,
+    this.useFormField = false,
   });
 
   @override
@@ -35,6 +47,25 @@ class _MyTextFieldState extends State<MyTextField> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.useFormField) {
+      return TextFormField(
+        controller: widget.controller,
+        keyboardType: widget.keyboardType,
+        textInputAction: widget.textInputAction,
+        onChanged: widget.onChanged,
+        validator: widget.validator,
+        maxLength: widget.maxLength,
+        minLines: widget.minLines,
+        maxLines: widget.maxLines,
+        obscureText: obscurePassword,
+        decoration:
+            widget.decoration ??
+            InputDecoration(
+              hintText: widget.hint,
+              prefixIcon: Icon(widget.icon),
+            ),
+      );
+    }
     return TextField(
       controller: widget.controller,
       keyboardType: widget.keyboardType,
@@ -47,17 +78,15 @@ class _MyTextFieldState extends State<MyTextField> {
 
         suffixIcon: widget.isPassword
             ? IconButton(
-          onPressed: () {
-            setState(() {
-              obscurePassword = !obscurePassword;
-            });
-          },
-          icon: Icon(
-            obscurePassword
-                ? Icons.visibility_off
-                : Icons.visibility,
-          ),
-        )
+                onPressed: () {
+                  setState(() {
+                    obscurePassword = !obscurePassword;
+                  });
+                },
+                icon: Icon(
+                  obscurePassword ? Icons.visibility_off : Icons.visibility,
+                ),
+              )
             : null,
 
         filled: true,
@@ -70,17 +99,12 @@ class _MyTextFieldState extends State<MyTextField> {
 
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
-            color: Color(0xFFE0E0E0),
-          ),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
         ),
 
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
-            color: Color(0xFF7C4DFF),
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 2),
         ),
       ),
     );

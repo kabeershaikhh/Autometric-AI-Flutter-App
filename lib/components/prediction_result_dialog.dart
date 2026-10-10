@@ -141,111 +141,122 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
         .trim();
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      elevation: 16,
-      clipBehavior: Clip.antiAlias,
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 520),
-        color: AppColors.white,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── PURPLE GRADIENT HEADER BANNER ──
-            ClipRRect(
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: AppColors.headerGradient,
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Positioned(
-                      top: -30,
-                      right: -20,
-                      child: const _DialogCircle(120),
-                    ),
-                    Positioned(
-                      bottom: -30,
-                      left: -20,
-                      child: const _DialogCircle(100),
-                    ),
-                    Positioned(
-                      bottom: -30,
-                      right: 60,
-                      child: const _DialogCircle(70),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 28,
-                        horizontal: 24,
+        constraints: const BoxConstraints(maxWidth: 480),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 30,
+              offset: const Offset(0, 14),
+            ),
+          ],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── PURPLE GRADIENT HEADER BANNER ──
+              ClipRRect(
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: AppColors.headerGradient,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Positioned(
+                        top: -30,
+                        right: -20,
+                        child: const _DialogCircle(120),
                       ),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: AppColors.white.withValues(alpha: 0.2),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.white.withValues(alpha: 0.5),
-                                width: 2,
+                      Positioned(
+                        bottom: -30,
+                        left: -20,
+                        child: const _DialogCircle(100),
+                      ),
+                      Positioned(
+                        bottom: -30,
+                        right: 60,
+                        child: const _DialogCircle(70),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                          horizontal: 20,
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 58,
+                              height: 58,
+                              decoration: BoxDecoration(
+                                color: AppColors.white.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.white.withValues(alpha: 0.5),
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.stars_rounded,
+                                color: AppColors.white,
+                                size: 34,
                               ),
                             ),
-                            child: const Icon(
-                              Icons.stars_rounded,
-                              color: AppColors.white,
-                              size: 38,
+                            const SizedBox(height: 10),
+                            const Text(
+                              "Valuation Complete",
+                              style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            "Valuation Complete",
-                            style: TextStyle(
-                              color: AppColors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            titleCar.isNotEmpty
-                                ? titleCar
-                                : "Vehicle Market Estimate",
-                            style: TextStyle(
-                              color: AppColors.white.withValues(alpha: 0.9),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                            if (titleCar.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                titleCar,
+                                style: TextStyle(
+                                  color: AppColors.white.withValues(alpha: 0.9),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // ── BODY CONTENT ──
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+              // ── BODY CONTENT ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 24),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     // ── PRICE BOX ──
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
-                        vertical: 20,
+                        vertical: 18,
                         horizontal: 16,
                       ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
                             AppColors.primarySurface,
-                            AppColors.primarySurface.withValues(alpha: 0.5),
+                            AppColors.primarySurface.withValues(alpha: 0.6),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -285,11 +296,12 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
                     // ── SPECS SUMMARY GRID ──
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppColors.scaffoldBg,
                         borderRadius: BorderRadius.circular(18),
@@ -316,10 +328,10 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                               ),
                             ],
                           ),
-                          const Divider(height: 20, color: AppColors.divider),
+                          const Divider(height: 18, color: AppColors.divider),
                           Wrap(
-                            spacing: 12,
-                            runSpacing: 10,
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               if (subTitleCar.isNotEmpty)
                                 _SpecChip(
@@ -368,10 +380,11 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // ── DYNAMIC ENGAGEMENT MESSAGE ──
                     Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 12,
@@ -396,81 +409,120 @@ class _PredictionResultDialogState extends State<PredictionResultDialog> {
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                                 color: Colors.amber.shade900,
-                                height: 1.3,
+                                height: 1.35,
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
+
+                    const SizedBox(height: 22),
+
+                    // ── ACTION BUTTONS ──
+                    Row(
+                      children: [
+                        // Secondary action: Done (matches account_dialog & logout_confirmation)
+                        Expanded(
+                          flex: 2,
+                          child: SizedBox(
+                            height: 52,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                backgroundColor: AppColors.primarySurface,
+                                foregroundColor: AppColors.primaryDark,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                  side: const BorderSide(
+                                    color: AppColors.primaryBorder,
+                                    width: 1.2,
+                                  ),
+                                ),
+                              ),
+                              onPressed: () => Navigator.pop(context),
+                              child: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  "Done",
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Primary action: Save Evaluation (matches AuthActionButton / FilledButton in other dialogs)
+                        Expanded(
+                          flex: 3,
+                          child: SizedBox(
+                            height: 52,
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                disabledBackgroundColor:
+                                    AppColors.primary.withValues(alpha: 0.7),
+                                foregroundColor: Colors.white,
+                                elevation: 6,
+                                shadowColor:
+                                    AppColors.primary.withValues(alpha: 0.35),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
+                              onPressed:
+                                  _isSaving ? null : _handleSaveEvaluation,
+                              child: _isSaving
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          _isSaved
+                                              ? Icons.bookmark_added_rounded
+                                              : Icons.bookmark_add_rounded,
+                                          size: 19,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Flexible(
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              _isSaved
+                                                  ? "Saved!"
+                                                  : "Save Evaluation",
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-            ),
-
-            // ── ACTION BUTTONS ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: const BorderSide(color: AppColors.primaryBorder),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      onPressed: _isSaving ? null : _handleSaveEvaluation,
-                      icon: _isSaving
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.primary,
-                              ),
-                            )
-                          : Icon(
-                              _isSaved
-                                  ? Icons.bookmark_added_rounded
-                                  : Icons.bookmark_add_outlined,
-                              size: 18,
-                              color: AppColors.primary,
-                            ),
-                      label: Text(
-                        _isSaved ? "Saved!" : "Save Evaluation",
-                        style: const TextStyle(
-                          color: AppColors.primaryDark,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.white,
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        "Done",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

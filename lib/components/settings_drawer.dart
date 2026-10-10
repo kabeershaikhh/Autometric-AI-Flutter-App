@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'account_dialog.dart';
 
 import '../auth/auth_service.dart';
 import '../constants/app_colors.dart';
@@ -95,24 +96,10 @@ class SettingsDrawer extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          title: const Row(
-            children: [
-              Icon(Icons.lock_outline, color: AppColors.primary, size: 24),
-              SizedBox(width: 10),
-              Text(
-                "Change Password",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
-                  fontSize: 19,
-                ),
-              ),
-            ],
-          ),
+        builder: (ctx, setDialogState) => AccountDialog(
+          title: 'Change Password',
+          icon: Icons.lock_outline_rounded,
+          busy: isLoading,
           content: SizedBox(
             width: 360,
             child: Form(
@@ -234,7 +221,7 @@ class SettingsDrawer extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(18),
                 ),
               ),
               child: isLoading
@@ -278,17 +265,10 @@ class SettingsDrawer extends StatelessWidget {
         bool isSending = false;
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              title: const Text(
-                "Send Reset Link",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
-                ),
-              ),
+            return AccountDialog(
+              title: 'Send Reset Link',
+              icon: Icons.mail_outline_rounded,
+              busy: isSending,
               content: Text(
                 "A password reset link will be sent to:\n\n$email\n\nYou'll be signed out after the link is sent.",
                 style: const TextStyle(height: 1.5),
@@ -330,8 +310,20 @@ class SettingsDrawer extends StatelessWidget {
                               Navigator.pop(ctx);
                               showDialog(
                                 context: context,
-                                builder: (context) =>
-                                    AlertDialog(title: Text(e.toString())),
+                                builder: (errorContext) => AccountDialog(
+                                  title: 'Could not send link',
+                                  icon: Icons.mail_outline_rounded,
+                                  content: const Text(
+                                    'Please check your connection and try again.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(errorContext),
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                ),
                               );
                             }
                           } finally {
@@ -345,7 +337,7 @@ class SettingsDrawer extends StatelessWidget {
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   child: isSending

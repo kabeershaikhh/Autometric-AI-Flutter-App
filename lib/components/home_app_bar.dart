@@ -10,11 +10,13 @@ import '../servers/user_service.dart';
 class HomeAppBar extends StatelessWidget {
   final VoidCallback onProfileTap;
   final String? photoBase64;
+  final VoidCallback? onNotifications;
 
   const HomeAppBar({
     super.key,
     required this.onProfileTap,
     this.photoBase64,
+    this.onNotifications,
   });
 
   @override
@@ -23,11 +25,9 @@ class HomeAppBar extends StatelessWidget {
 
     return Row(
       children: [
-
         //////////////////////////////////////
         /// APP LOGO
         //////////////////////////////////////
-
         Container(
           width: 48,
           height: 48,
@@ -37,9 +37,7 @@ class HomeAppBar extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(4),
-            child: Image.asset(
-              "assets/AutoMetricAI.png",
-            ),
+            child: Image.asset("assets/AutoMetricAI.png"),
           ),
         ),
 
@@ -48,12 +46,10 @@ class HomeAppBar extends StatelessWidget {
         //////////////////////////////////////
         /// TITLE
         //////////////////////////////////////
-
         const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Text(
                 "AutoMetric AI",
                 style: TextStyle(
@@ -67,10 +63,7 @@ class HomeAppBar extends StatelessWidget {
 
               Text(
                 "AI Powered Valuation",
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ],
           ),
@@ -79,14 +72,13 @@ class HomeAppBar extends StatelessWidget {
         //////////////////////////////////////
         /// NOTIFICATION
         //////////////////////////////////////
-
         Container(
           decoration: BoxDecoration(
             color: AppColors.white.withOpacity(0.15),
             borderRadius: BorderRadius.circular(14),
           ),
           child: IconButton(
-            onPressed: () {},
+            onPressed: onNotifications,
             icon: const Icon(
               Icons.notifications_none_rounded,
               color: AppColors.white,
@@ -99,19 +91,16 @@ class HomeAppBar extends StatelessWidget {
         //////////////////////////////////////
         /// PROFILE
         //////////////////////////////////////
-
         GestureDetector(
           onTap: onProfileTap,
           child: CircleAvatar(
             radius: 22,
             backgroundColor: AppColors.white.withOpacity(0.25),
-            backgroundImage:
-                photoBytes != null ? MemoryImage(photoBytes) : null,
+            backgroundImage: photoBytes != null
+                ? MemoryImage(photoBytes)
+                : null,
             child: photoBytes == null
-                ? const Icon(
-                    Icons.person,
-                    color: AppColors.white,
-                  )
+                ? const Icon(Icons.person, color: AppColors.white)
                 : null,
           ),
         ),

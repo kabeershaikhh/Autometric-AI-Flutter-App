@@ -53,6 +53,7 @@ class _PredictPageState extends State<PredictPage> {
   List<int> _filteredEngines = [];
   List<String> _filteredTransmissions = [];
   List<String> _filteredAssemblies = [];
+  List<String> _filteredColors = [];
   String? _autoBodyType; // Auto-locked body type from constraints
   bool _isBodyTypeLocked = false;
 
@@ -80,6 +81,7 @@ class _PredictPageState extends State<PredictPage> {
         _filteredEngines = _getIntList('engine_capacities');
         _filteredTransmissions = _getStringList('transmissions');
         _filteredAssemblies = _getStringList('assemblies');
+        _filteredColors = _getStringList('colors');
       });
     } catch (e) {
       if (!mounted) return;
@@ -140,6 +142,7 @@ class _PredictPageState extends State<PredictPage> {
       _filteredEngines = _getIntList('engine_capacities');
       _filteredTransmissions = _getStringList('transmissions');
       _filteredAssemblies = _getStringList('assemblies');
+      _filteredColors = _getStringList('colors');
       _autoBodyType = null;
       _isBodyTypeLocked = false;
       return;
@@ -196,7 +199,21 @@ class _PredictPageState extends State<PredictPage> {
       modelYear = null;
     }
 
-    // 4. Apply year-dependent constraints (engine + transmission)
+    // 4. Safely filter colors for this car
+    final rawColors = c['all_colors'];
+    if (rawColors is List && rawColors.isNotEmpty) {
+      final colorList = rawColors.map((e) => e.toString()).toList();
+      _filteredColors = colorList;
+      if (colorList.length == 1) {
+        color = colorList.first;
+      } else if (color != null && !colorList.contains(color)) {
+        color = null;
+      }
+    } else {
+      _filteredColors = _getStringList('colors');
+    }
+
+    // 5. Apply year-dependent constraints (engine + transmission)
     _applyYearConstraints();
   }
 
@@ -219,9 +236,17 @@ class _PredictPageState extends State<PredictPage> {
         } else {
           _filteredTransmissions = _getStringList('transmissions');
         }
+
+        final rawColors = c['all_colors'];
+        if (rawColors is List) {
+          _filteredColors = rawColors.map((e) => e.toString()).toList();
+        } else {
+          _filteredColors = _getStringList('colors');
+        }
       } else {
         _filteredEngines = _getIntList('engine_capacities');
         _filteredTransmissions = _getStringList('transmissions');
+        _filteredColors = _getStringList('colors');
       }
       return;
     }
@@ -278,6 +303,31 @@ class _PredictPageState extends State<PredictPage> {
               : _getStringList('transmissions'));
     }
 
+    // Find matching color range for the selected year (e.g. excludes old gen colors from modern cars)
+    final colorByYear = c['color_by_year'] as Map<String, dynamic>?;
+    if (colorByYear != null) {
+      final ranges = colorByYear['ranges'] as List<dynamic>? ?? [];
+      List<String>? matchedColors;
+      for (final range in ranges) {
+        final r = range as Map<String, dynamic>;
+        final years = (r['years'] as List<dynamic>)
+            .map((e) => (e as num).toInt())
+            .toList();
+        if (years.length == 2 && year >= years[0] && year <= years[1]) {
+          matchedColors = (r['colors'] as List<dynamic>)
+              .map((e) => e.toString())
+              .toList();
+          break;
+        }
+      }
+      final rawAllColors = c['all_colors'];
+      _filteredColors =
+          matchedColors ??
+          (rawAllColors is List
+              ? rawAllColors.map((e) => e.toString()).toList()
+              : _getStringList('colors'));
+    }
+
     // Auto-select if only one option available
     if (_filteredEngines.length == 1) {
       engineCc = _filteredEngines.first;
@@ -290,6 +340,15 @@ class _PredictPageState extends State<PredictPage> {
     } else if (transmission != null &&
         !_filteredTransmissions.contains(transmission)) {
       transmission = null;
+    }
+
+    if (color != null && !_filteredColors.contains(color)) {
+      color = null;
+    }
+
+    // Reset Un-Registered if selected car year is not 2026
+    if (year != 2026 && city == 'Un-Registered') {
+      city = null;
     }
   }
 
@@ -304,6 +363,7 @@ class _PredictPageState extends State<PredictPage> {
       engineCc = null;
       transmission = null;
       bodyType = null;
+      color = null;
       assembly = null;
       _autoBodyType = null;
       _isBodyTypeLocked = false;
@@ -312,6 +372,7 @@ class _PredictPageState extends State<PredictPage> {
       _filteredEngines = _getIntList('engine_capacities');
       _filteredTransmissions = _getStringList('transmissions');
       _filteredAssemblies = _getStringList('assemblies');
+      _filteredColors = _getStringList('colors');
     });
   }
 
@@ -362,6 +423,35 @@ class _PredictPageState extends State<PredictPage> {
     });
   }
 
+  static const int _absoluteMaxMileage = 999999;
+  static const int _baseMileage2026 = 75000;
+  static const int _yearStepDiff = 60000;
+
+  int _getMaxMileage(int? year) {
+    if (year == null) {
+      final rules = options['mileage_rules'] as Map<String, dynamic>?;
+      if (rules != null && rules['absolute_max'] != null) {
+        return (rules['absolute_max'] as num).toInt();
+      }
+      return _absoluteMaxMileage;
+    }
+    // Check dynamic rules from backend options first
+    final rules = options['mileage_rules'] as Map<String, dynamic>?;
+    if (rules != null) {
+      final maxByYear = rules['max_by_year'] as Map<String, dynamic>?;
+      if (maxByYear != null) {
+        final val = maxByYear[year.toString()];
+        if (val != null) {
+          return (val as num).toInt();
+        }
+      }
+    }
+    // Fallback formula: consistent step progression (+60,000/yr) capped at 999,999 km
+    if (year > 2026) return _baseMileage2026;
+    final val = _baseMileage2026 + (2026 - year) * _yearStepDiff;
+    return val > _absoluteMaxMileage ? _absoluteMaxMileage : val;
+  }
+
   Future<void> _predict() async {
     if (brand == null ||
         model == null ||
@@ -385,6 +475,94 @@ class _PredictPageState extends State<PredictPage> {
       return;
     }
 
+    final kmNum = double.tryParse(mileageController.text.replaceAll(',', '').trim());
+    final maxAllowed = _getMaxMileage(modelYear);
+    if (kmNum == null || kmNum < 0 || kmNum > maxAllowed) {
+      final formattedMax = maxAllowed.toString().replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (Match m) => '${m[1]},',
+      );
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Mileage must be between 0 and $formattedMax km for model year ${modelYear ?? ""}.',
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final loadingRoute = DialogRoute<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.48),
+      builder: (_) => PopScope(
+        canPop: false,
+        child: Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          backgroundColor: Colors.white,
+          elevation: 24,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 380),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primaryBorder,
+                      width: 2,
+                    ),
+                  ),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 34,
+                      height: 34,
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                        strokeWidth: 3.5,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 22),
+                const Text(
+                  'Predicting Market Price…',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textDark,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Evaluating vehicle parameters against Pakistan automotive market trends…',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textGrey,
+                    fontSize: 13,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    navigator.push<void>(loadingRoute);
+
     setState(() {
       isPredicting = true;
       predictionResult = null;
@@ -402,10 +580,22 @@ class _PredictPageState extends State<PredictPage> {
         'color': color,
         'assembly': assembly,
         'city': city,
-        'mileage_km': double.parse(mileageController.text),
+        'mileage_km': double.parse(mileageController.text.replaceAll(',', '').trim()),
       };
 
+      final stopwatch = Stopwatch()..start();
       final result = await PredictionService.predictPrice(data);
+
+      // Keep loading animation visible for 3 seconds as requested
+      final remainingMs = 3000 - stopwatch.elapsedMilliseconds;
+      if (remainingMs > 0) {
+        await Future.delayed(Duration(milliseconds: remainingMs));
+      }
+
+      if (navigator.mounted && loadingRoute.isActive) {
+        navigator.removeRoute(loadingRoute);
+      }
+
       if (!mounted) return;
 
       setState(() {
@@ -416,6 +606,7 @@ class _PredictPageState extends State<PredictPage> {
       if (mounted) {
         showDialog(
           context: context,
+          barrierColor: Colors.black.withValues(alpha: 0.48),
           builder: (ctx) => PredictionResultDialog(
             formattedPrice: result['formatted_price'],
             brand: brand,
@@ -434,19 +625,21 @@ class _PredictPageState extends State<PredictPage> {
         );
       }
     } catch (e) {
+      if (navigator.mounted && loadingRoute.isActive) {
+        navigator.removeRoute(loadingRoute);
+      }
+      if (!mounted) return;
       setState(() {
         isPredicting = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Prediction failed: $e'),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Prediction failed: $e'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -495,6 +688,8 @@ class _PredictPageState extends State<PredictPage> {
               filteredEngines: _filteredEngines,
               filteredTransmissions: _filteredTransmissions,
               filteredAssemblies: _filteredAssemblies,
+              filteredColors: _filteredColors,
+              maxMileage: _getMaxMileage(modelYear),
               isBodyTypeLocked: _isBodyTypeLocked,
             );
           }
@@ -519,7 +714,7 @@ class _PredictPageState extends State<PredictPage> {
             mileageController: mileageController,
             onBrandChanged: _onBrandChanged,
             onModelChanged: _onModelChanged,
-            onVariantChanged: (v) => setState(() => variant = v),
+            onVariantChanged: _onVariantChanged,
             onModelYearChanged: _onModelYearChanged,
             onEngineCcChanged: (v) => setState(() => engineCc = v),
             onTransmissionChanged: (v) => setState(() => transmission = v),
@@ -532,6 +727,8 @@ class _PredictPageState extends State<PredictPage> {
             filteredEngines: _filteredEngines,
             filteredTransmissions: _filteredTransmissions,
             filteredAssemblies: _filteredAssemblies,
+            filteredColors: _filteredColors,
+            maxMileage: _getMaxMileage(modelYear),
             isBodyTypeLocked: _isBodyTypeLocked,
           );
         },

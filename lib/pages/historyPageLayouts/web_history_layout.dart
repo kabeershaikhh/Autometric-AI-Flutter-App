@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../../components/web_feature_header.dart';
 
 import '../../components/recent_tile.dart';
 import '../../constants/app_colors.dart';
@@ -108,127 +109,13 @@ class _WebHistoryLayoutState extends State<WebHistoryLayout> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // ── HERO BANNER ──
-                            Container(
-                              clipBehavior: Clip.antiAlias,
-                              decoration: BoxDecoration(
-                                gradient: AppColors.headerGradient,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.25,
-                                    ),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
-                              ),
-                              child: Stack(
-                                children: [
-                                  Positioned(
-                                    top: -40,
-                                    right: -30,
-                                    child: const _WebHistoryCircle(150),
-                                  ),
-                                  Positioned(
-                                    bottom: -35,
-                                    left: -30,
-                                    child: const _WebHistoryCircle(120),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(28),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 10,
-                                                          vertical: 4,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: AppColors.white
-                                                          .withValues(
-                                                            alpha: 0.2,
-                                                          ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            20,
-                                                          ),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: const [
-                                                        Icon(
-                                                          Icons.history_edu,
-                                                          size: 14,
-                                                          color: Colors.amber,
-                                                        ),
-                                                        SizedBox(width: 6),
-                                                        Text(
-                                                          "Saved Predictions",
-                                                          style: TextStyle(
-                                                            color:
-                                                                AppColors.white,
-                                                            fontSize: 12,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 12),
-                                              const Text(
-                                                "Evaluation History",
-                                                style: TextStyle(
-                                                  fontSize: 26,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.white,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 6),
-                                              Text(
-                                                "View and manage your saved car market valuation predictions.",
-                                                style: TextStyle(
-                                                  color: AppColors.white
-                                                      .withValues(alpha: 0.85),
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 24),
-                                        Container(
-                                          width: 64,
-                                          height: 64,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.white.withValues(
-                                              alpha: 0.15,
-                                            ),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.history_rounded,
-                                            color: AppColors.white,
-                                            size: 36,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            const WebFeatureHeader(
+                              badge: 'Saved Predictions',
+                              badgeIcon: Icons.history_edu,
+                              title: 'Evaluation History',
+                              subtitle:
+                                  'View and manage your saved car market valuation predictions.',
+                              icon: Icons.history_rounded,
                             ),
 
                             const SizedBox(height: 28),
@@ -450,23 +337,6 @@ class _WebChip extends StatelessWidget {
           fontWeight: FontWeight.w500,
           color: AppColors.textLight,
         ),
-      ),
-    );
-  }
-}
-
-class _WebHistoryCircle extends StatelessWidget {
-  final double size;
-  const _WebHistoryCircle(this.size);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.white.withValues(alpha: 0.06),
       ),
     );
   }

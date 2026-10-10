@@ -41,6 +41,8 @@ class AndroidPredictLayout extends StatelessWidget {
   final List<int> filteredEngines;
   final List<String> filteredTransmissions;
   final List<String> filteredAssemblies;
+  final List<String> filteredColors;
+  final int maxMileage;
   final bool isBodyTypeLocked;
 
   const AndroidPredictLayout({
@@ -75,6 +77,8 @@ class AndroidPredictLayout extends StatelessWidget {
     required this.filteredEngines,
     required this.filteredTransmissions,
     required this.filteredAssemblies,
+    this.filteredColors = const [],
+    this.maxMileage = 999999,
     required this.isBodyTypeLocked,
   });
 
@@ -122,15 +126,19 @@ class AndroidPredictLayout extends StatelessWidget {
                   ?.map((e) => e as String)
                   .toList() ??
               []);
-    final colors =
-        (options['colors'] as List<dynamic>?)
-            ?.map((e) => e as String)
-            .toList() ??
-        [];
+    final colors = filteredColors.isNotEmpty
+        ? filteredColors
+        : ((options['colors'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            []);
     final assemblies = filteredAssemblies;
     final cities =
         (options['cities'] as List<dynamic>?)
             ?.map((e) => e as String)
+            .where((c) =>
+                modelYear == 2026 ||
+                c != 'Un-Registered')
             .toList() ??
         [];
 
@@ -183,16 +191,17 @@ class AndroidPredictLayout extends StatelessWidget {
 
                   const SizedBox(height: 18),
 
-                  // ── SECTION 2: PERFORMANCE & SPECS ──
+                  // ── SECTION 2: TECHNICAL SPECS ──
                   _SectionCard(
-                    title: "Performance & Specifications",
+                    title: "Technical Specifications",
                     icon: Icons.tune_rounded,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: PredictDropdown<int>(
-                              label: 'Year',
+                              label: 'Model Year',
                               items: years,
                               selectedValue: modelYear,
                               onChanged: onModelYearChanged,
@@ -213,6 +222,7 @@ class AndroidPredictLayout extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: PredictDropdown<String>(
@@ -235,17 +245,9 @@ class AndroidPredictLayout extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // ── SECTION 3: CONDITION & LOCATION ──
-                  _SectionCard(
-                    title: "Body & Location",
-                    icon: Icons.location_on_rounded,
-                    children: [
+                      const SizedBox(height: 14),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: PredictDropdown<String>(
@@ -269,7 +271,16 @@ class AndroidPredictLayout extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                    ],
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // ── SECTION 3: LOCATION & MILEAGE ──
+                  _SectionCard(
+                    title: "Location & Mileage",
+                    icon: Icons.location_on_rounded,
+                    children: [
                       PredictDropdown<String>(
                         label: 'City',
                         items: cities,
@@ -278,7 +289,10 @@ class AndroidPredictLayout extends StatelessWidget {
                         icon: Icons.location_city_rounded,
                       ),
                       const SizedBox(height: 14),
-                      PredictMileageInput(controller: mileageController),
+                      PredictMileageInput(
+                        controller: mileageController,
+                        maxMileage: maxMileage,
+                      ),
                     ],
                   ),
 
@@ -327,7 +341,7 @@ class AndroidPredictLayout extends StatelessWidget {
                                 SizedBox(width: 10),
                                 Flexible(
                                   child: Text(
-                                    'Calculate Market Price',
+                                    'Predict Price',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,

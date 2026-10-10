@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) { return request.auth != null && request.auth.uid == uid; }
+    function text(value, maximum) { return value is string && value.size() <= maximum; }
+    function car(uid, id) { return get(/databases/$(database)/documents/users/$(uid)/maintenanceVehicles/$(id)); }
+    function validCar(d) {
+      // Legacy photo metadata may remain, but photo attachment writes are disabled.
+      return d.keys().hasOnly(['manufacturer', 'model', 'year', 'plate', 'fuel', 'odometer', 'readingDate', 'previousKm', 'previousDate', 'weeklyKm', 'archived', 'hasPhoto', 'photoRevision', 'schedules', 'createdAt', 'updatedAt', 'deleting'])
+        && text(d.manufacturer, 60) && d.manufacturer.size() > 0 && text(d.model, 60) && d.model.size() > 0
+        && text(d.plate, 24) && d.fuel in ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'CNG', 'Other']
+        && d.year is int && d.year >= 1950 && d.year <= 2100
+        && d.odometer is int && d.odometer >= 0 && d.odometer <= 3000000
+        && d.readingDate is timestamp && d.readingDate <= request.time + duration.value(1, 'd')
+        && (d.weeklyKm == null || (d.weeklyKm is number && d.weeklyKm > 0 && d.weeklyKm <= 10000))
+        && d.archived is bool && d.schedules is map && d.schedules.size() <= 20;
+    }
+    match /users/{uid} {
+      allow read: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['name', 'email', 'photoBase64', 'maintenanceVehicleCount'])
+        && text(request.resource.data.name, 200) && text(request.resource.data.email, 320)
+        && text(request.resource.data.photoBase64, 900000)
+        && (!('maintenanceVehicleCount' in request.resource.data) ||
+          (request.resource.data.maintenanceVehicleCount is int && request.resource.data.maintenanceVehicleCount >= 0 && request.resource.data.maintenanceVehicleCount <= 50));
+      match /evaluations/{id} {
+        allow read, delete: if owner(uid);
+        allow create: if owner(uid) && request.resource.data.createdAt == request.time;
+      }
+      match /maintenanceSettings/reminders {
+        allow read: if owner(uid);
+        allow write: if owner(uid) && request.resource.data.keys().hasOnly(['enabled', 'hour', 'leadDays'])
+          && request.resource.data.enabled is bool && request.resource.data.hour is int
+          && request.resource.data.hour >= 8 && request.resource.data.hour <= 20
+          && request.resource.data.leadDays in [1, 3, 7, 14];
+      }
+      match /maintenanceVehicles/{id} {
+        allow read: if owner(uid);
+        allow create: if owner(uid) && validCar(request.resource.data)
+          && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/users/$(uid)).data.maintenanceVehicleCount <= 50
+          && getAfter(/databases/$(database)/documents/users/$(uid)).data.maintenanceVehicleCount == get(/databases/$(database)/documents/users/$(uid)).data.get('maintenanceVehicleCount', 0) + 1;
+        allow update: if owner(uid) && validCar(request.resource.data) && request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if owner(uid) && resource.data.archived == true;
+        match /odometerReadings/{reading} {
+          allow read, delete: if owner(uid);
+          allow create, update: if owner(uid) && request.resource.data.keys().hasOnly(['km', 'date', 'correction'])
+            && request.resource.data.km is int && request.resource.data.km >= 0 && request.resource.data.km <= 3000000
+            && request.resource.data.date is timestamp && request.resource.data.correction is bool
+            && getAfter(/databases/$(database)/documents/users/$(uid)/maintenanceVehicles/$(id)).data.get('deleting', false) == false;
+        }
+        match /serviceRecords/{service} {
+          allow read, delete: if owner(uid);
+          allow create, update: if owner(uid) && car(uid, id).data.archived == false && car(uid, id).data.get('deleting', false) == false
+            && request.resource.data.keys().hasOnly(['types', 'date', 'odometer', 'costPaisa', 'notes', 'workshop', 'plannedOnly', 'intervals', 'hasReceipt', 'createdAt', 'updatedAt'])
+            && request.resource.data.types is list && request.resource.data.types.size() >= 1 && request.resource.data.types.size() <= 10
+            && request.resource.data.date is timestamp && request.resource.data.date <= request.time + duration.value(1, 'd')
+            && request.resource.data.odometer is int && request.resource.data.odometer >= 0 && request.resource.data.odometer <= 3000000
+            && request.resource.data.costPaisa is int && request.resource.data.costPaisa >= 0 && request.resource.data.costPaisa <= 99999999999
+            && text(request.resource.data.notes, 1000) && text(request.resource.data.workshop, 100)
+            && request.resource.data.plannedOnly is bool && request.resource.data.hasReceipt is bool
+            && request.resource.data.intervals is map && request.resource.data.intervals.size() <= 10;
+        }
+        match /attachments/{attachment} {
+          allow read, delete: if owner(uid);
+          allow create, update: if owner(uid)
+            && attachment.matches('receipt_.+')
+            && getAfter(/databases/$(database)/documents/users/$(uid)/maintenanceVehicles/$(id)).data.get('deleting', false) == false
+            && request.resource.data.keys().hasOnly(['base64', 'bytes'])
+            && text(request.resource.data.base64, 273068)
+            && request.resource.data.bytes is int && request.resource.data.bytes > 0
+            && request.resource.data.bytes <= 204800;
+        }
+      }
+    }
+  }
+}

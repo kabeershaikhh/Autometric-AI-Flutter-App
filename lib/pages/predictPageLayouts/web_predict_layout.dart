@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../components/web_feature_header.dart';
 import '../../components/predict_dropdown.dart';
 import '../../components/predict_mileage_input.dart';
 import '../../constants/app_colors.dart';
@@ -47,6 +48,8 @@ class WebPredictLayout extends StatefulWidget {
   final List<int> filteredEngines;
   final List<String> filteredTransmissions;
   final List<String> filteredAssemblies;
+  final List<String> filteredColors;
+  final int maxMileage;
   final bool isBodyTypeLocked;
 
   const WebPredictLayout({
@@ -86,6 +89,8 @@ class WebPredictLayout extends StatefulWidget {
     required this.filteredEngines,
     required this.filteredTransmissions,
     required this.filteredAssemblies,
+    this.filteredColors = const [],
+    this.maxMileage = 999999,
     required this.isBodyTypeLocked,
   });
 
@@ -143,15 +148,19 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                   ?.map((e) => e as String)
                   .toList() ??
               []);
-    final colors =
-        (widget.options['colors'] as List<dynamic>?)
-            ?.map((e) => e as String)
-            .toList() ??
-        [];
+    final colors = widget.filteredColors.isNotEmpty
+        ? widget.filteredColors
+        : ((widget.options['colors'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            []);
     final assemblies = widget.filteredAssemblies;
     final cities =
         (widget.options['cities'] as List<dynamic>?)
             ?.map((e) => e as String)
+            .where((c) =>
+                widget.modelYear == 2026 ||
+                c != 'Un-Registered')
             .toList() ??
         [];
 
@@ -180,134 +189,13 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // ── PAGE HEADER CARD ──
-                            Container(
-                              clipBehavior: Clip.antiAlias,
-                              decoration: BoxDecoration(
-                                gradient: AppColors.headerGradient,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.25,
-                                    ),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
-                              ),
-                              child: Stack(
-                                children: [
-                                  // Corner decorative circles touching true outer purple edges
-                                  Positioned(
-                                    top: -40,
-                                    right: -30,
-                                    child: const _WebPredictCircle(150),
-                                  ),
-                                  Positioned(
-                                    bottom: -35,
-                                    left: -30,
-                                    child: const _WebPredictCircle(120),
-                                  ),
-                                  Positioned(
-                                    bottom: -40,
-                                    right: 110,
-                                    child: const _WebPredictCircle(95),
-                                  ),
-                                  // Content with inner padding
-                                  Padding(
-                                    padding: const EdgeInsets.all(28),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 10,
-                                                          vertical: 4,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: AppColors.white
-                                                          .withValues(
-                                                            alpha: 0.2,
-                                                          ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            20,
-                                                          ),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: const [
-                                                        Icon(
-                                                          Icons.auto_awesome,
-                                                          size: 14,
-                                                          color: Colors.amber,
-                                                        ),
-                                                        SizedBox(width: 6),
-                                                        Text(
-                                                          "AI Market Valuation",
-                                                          style: TextStyle(
-                                                            color:
-                                                                AppColors.white,
-                                                            fontSize: 12,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 12),
-                                              const Text(
-                                                "Predict Vehicle Market Price",
-                                                style: TextStyle(
-                                                  fontSize: 26,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.white,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 6),
-                                              Text(
-                                                "Enter specification parameters to generate accurate price estimates using Machine Learning models.",
-                                                style: TextStyle(
-                                                  color: AppColors.white
-                                                      .withValues(alpha: 0.85),
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 24),
-                                        Container(
-                                          width: 64,
-                                          height: 64,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.white.withValues(
-                                              alpha: 0.15,
-                                            ),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.analytics_rounded,
-                                            color: AppColors.white,
-                                            size: 36,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            const WebFeatureHeader(
+                              badge: 'AI Market Valuation',
+                              badgeIcon: Icons.auto_awesome,
+                              title: 'Predict Vehicle Market Price',
+                              subtitle:
+                                  'Enter specification parameters to generate accurate price estimates using Machine Learning models.',
+                              icon: Icons.analytics_rounded,
                             ),
 
                             const SizedBox(height: 28),
@@ -318,6 +206,8 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                               icon: Icons.directions_car_filled_rounded,
                               children: [
                                 Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
                                       child: PredictDropdown<String>(
@@ -363,6 +253,8 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                               icon: Icons.tune_rounded,
                               children: [
                                 Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
                                       child: PredictDropdown<int>(
@@ -397,6 +289,8 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                                 ),
                                 const SizedBox(height: 20),
                                 Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
                                       child: PredictDropdown<String>(
@@ -441,6 +335,8 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                               icon: Icons.location_on_rounded,
                               children: [
                                 Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
                                       child: PredictDropdown<String>(
@@ -455,6 +351,7 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                                     Expanded(
                                       child: PredictMileageInput(
                                         controller: widget.mileageController,
+                                        maxMileage: widget.maxMileage,
                                       ),
                                     ),
                                   ],
@@ -511,7 +408,7 @@ class _WebPredictLayoutState extends State<WebPredictLayout> {
                                           ),
                                           SizedBox(width: 10),
                                           Text(
-                                            'Calculate Market Value',
+                                            'Predict Price',
                                             style: TextStyle(
                                               fontSize: 17,
                                               fontWeight: FontWeight.bold,
@@ -595,23 +492,6 @@ class _WebSectionCard extends StatelessWidget {
           const SizedBox(height: 20),
           ...children,
         ],
-      ),
-    );
-  }
-}
-
-class _WebPredictCircle extends StatelessWidget {
-  final double size;
-  const _WebPredictCircle(this.size);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.white.withValues(alpha: 0.06),
       ),
     );
   }

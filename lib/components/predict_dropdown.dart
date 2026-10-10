@@ -60,9 +60,9 @@ class PredictDropdown<T> extends StatelessWidget {
           isExpanded: true,
           value: isSelected ? selectedValue : null,
           hint: Text(
-            disabled
-                ? 'Select prior option'
-                : (hint ?? 'Select ${label.toLowerCase()}'),
+            'Select',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 14,
               color: disabled ? AppColors.iconGrey : AppColors.textGrey,

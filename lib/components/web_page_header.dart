@@ -10,6 +10,7 @@ class WebPageHeader extends StatelessWidget {
   final String photoBase64;
   final VoidCallback onHome;
   final VoidCallback onProfile;
+  final VoidCallback? onNotifications;
 
   const WebPageHeader({
     super.key,
@@ -18,6 +19,7 @@ class WebPageHeader extends StatelessWidget {
     required this.photoBase64,
     required this.onHome,
     required this.onProfile,
+    this.onNotifications,
   });
 
   @override
@@ -96,7 +98,7 @@ class WebPageHeader extends StatelessWidget {
           const SizedBox(width: 16),
           IconButton(
             tooltip: 'Notifications',
-            onPressed: () {},
+            onPressed: onNotifications,
             style: IconButton.styleFrom(
               backgroundColor: home
                   ? AppColors.primarySurface
@@ -104,7 +106,7 @@ class WebPageHeader extends StatelessWidget {
             ),
             icon: Icon(
               Icons.notifications_none_rounded,
-              color: home ? AppColors.primary : AppColors.textDark,
+              color:  AppColors.primary,
             ),
           ),
           const SizedBox(width: 14),
