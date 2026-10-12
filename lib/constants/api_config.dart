@@ -15,11 +15,11 @@ class ApiConfig {
   
   static String get baseUrl {
     if (kIsWeb) {
-      return "http://127.0.0.1:8000";
+      return "http://3.89.159.124:8000";
     } else {
       // Set to 127.0.0.1, assuming you run `adb reverse tcp:8000 tcp:8000`
       // Otherwise, change this to your PC's local IP address like "http://192.168.1.100:8000"
-      return "http://127.0.0.1:8000";
+      return "http://3.89.159.124:8000";
     }
   }
 }
