@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
 import '../components/auth_action_button.dart';
+import '../components/auth_web_spacing.dart';
 import 'auth_flow_page.dart';
 
 class WelcomePage extends StatelessWidget {
@@ -53,15 +54,15 @@ class WelcomePage extends StatelessWidget {
               SafeArea(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.symmetric(
-                    horizontal: isWide ? 64 : 24,
-                    vertical: isWide ? 44 : 30,
+                    horizontal: isWide ? AuthWebSpacing.horizontalPadding : 24,
+                    vertical: isWide ? AuthWebSpacing.verticalPadding : 30,
                   ),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight:
                           constraints.maxHeight -
                           MediaQuery.paddingOf(context).vertical -
-                          (isWide ? 88 : 60),
+                          (isWide ? AuthWebSpacing.verticalPadding * 2 : 60),
                     ),
                     child: Center(
                       child: isWide
@@ -72,10 +73,7 @@ class WelcomePage extends StatelessWidget {
                                   child: _WelcomeBranding(isWide: true),
                                 ),
                                 SizedBox(
-                                  width: (constraints.maxWidth * 0.08).clamp(
-                                    50.0,
-                                    130.0,
-                                  ),
+                                  width: AuthWebSpacing.gap(constraints.maxWidth),
                                 ),
                                 Flexible(
                                   child: _WelcomeActionCard(
@@ -118,7 +116,7 @@ class _WelcomeBranding extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 430),
+      constraints: const BoxConstraints(maxWidth: AuthWebSpacing.brandingMaxWidth),
       child: Column(
         crossAxisAlignment: isWide
             ? CrossAxisAlignment.start
@@ -153,7 +151,7 @@ class _WelcomeBranding extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Smart Car Estimation',
+            'Smart Car Price Estimation',
             textAlign: isWide ? TextAlign.left : TextAlign.center,
             style: TextStyle(
               fontSize: isWide ? 21 : 16,
@@ -164,17 +162,17 @@ class _WelcomeBranding extends StatelessWidget {
             const SizedBox(height: 42),
             const _BenefitRow(
               icon: Icons.auto_awesome_rounded,
-              text: 'AI-powered vehicle estimates',
+              text: 'AI-Powered Estimation',
             ),
             const SizedBox(height: 18),
             const _BenefitRow(
-              icon: Icons.person_outline_rounded,
-              text: 'Try price prediction as a guest',
+              icon: Icons.build_outlined,
+              text: 'Smart Car Maintenance Management',
             ),
             const SizedBox(height: 18),
             const _BenefitRow(
               icon: Icons.bookmark_outline_rounded,
-              text: 'Sign in to save your evaluations',
+              text: 'Save Evaluations Efficiently',
             ),
           ],
         ],
@@ -198,7 +196,7 @@ class _WelcomeActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(maxWidth: 470),
+      constraints: const BoxConstraints(maxWidth: AuthWebSpacing.cardMaxWidth),
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 36),
       decoration: BoxDecoration(
         color: Colors.white,

@@ -74,7 +74,7 @@ class WebSidebar extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    "AI Powered Valuation",
+                    "AI-Powered Estimation",
                     style: TextStyle(
                       color: AppColors.white.withValues(alpha: 0.65),
                       fontSize: 12,

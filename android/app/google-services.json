@@ -12,7 +12,20 @@
           "package_name": "com.example.autometric_ai"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "278768397501-ujgunjrircfdfqvfouoda4pf0unoh44l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.autometric_ai",
+            "certificate_hash": "fcf8cc57b982653ce2153fe5ef8a5f9410497b8c"
+          }
+        },
+        {
+          "client_id": "278768397501-a65boqj5tsh4u85595uu7l7gsvhgc84d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAjQbnFhPXusdHRTA7BvahENyCA-_1Kul8"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "278768397501-a65boqj5tsh4u85595uu7l7gsvhgc84d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -1,0 +1,51 @@
+AUTOMETRIC AI
+AI Assisted Car Valuation and Maintenance
+Built for Pakistan's used car market
+
+ABSTRACT
+Buying or selling a used car often begins with one question: what is a reasonable asking price? AutoMetric AI uses vehicle listings from Pakistan to estimate prices from a car's specifications and mileage. Available on Android and web, it gives buyers and sellers a useful starting point for comparison and negotiation. Owners can also keep service records and plan upcoming maintenance in the same app.
+
+PROBLEM STATEMENT
+Similar-looking cars can carry very different asking prices. Checking listings manually takes time, while differences in age, mileage and variant make comparisons difficult. Service records and maintenance deadlines are also easy to lose track of.
+
+AIM AND OBJECTIVES
+Aim: Provide a locally relevant price reference and a simple way to manage vehicle upkeep.
+- Estimate used car prices using vehicle details and local listing data.
+- Let users save valuations for later comparison.
+- Organize service records and track upcoming maintenance.
+
+PROPOSED SOLUTION
+Enter a car's details to view an estimated price in PKR. Sign in to save valuations or manage a separate garage with multiple cars. Record services and odometer readings to review upcoming maintenance.
+
+METHODOLOGY
+1. Collect: Gather used car listings from PakWheels.
+2. Prepare: Clean records and standardize vehicle details.
+3. Develop: Compare prediction models and select XGBoost.
+4. Connect: Serve predictions through FastAPI and package the backend with Docker.
+5. Build: Bring valuation and maintenance features together in Flutter, with Firebase for user records.
+
+RESULTS
+- Prepared 9,849 vehicle records for model development.
+- Integrated price estimation into Android and web layouts.
+- Added saved valuations and management of multiple cars.
+- Added service history and reminders based on dates and user-updated mileage.
+Estimates reflect advertised prices and do not replace a vehicle inspection.
+
+TECHNOLOGIES USED
+Flutter and Dart: Android and web interface
+Python and XGBoost: Data preparation and price prediction
+Firebase: Accounts and personal records
+FastAPI and Docker: Prediction service and packaging
+
+SUMMARY
+AutoMetric AI gives buyers and sellers a data-based starting point for price discussions, while helping owners keep vehicle care organized.
+
+PROJECT DEMO
+[Space reserved for demo QR code]
+
+PROJECT TEAM
+Supervisor: Dr. Din Muhammad Sangrasi
+Leader: Abdul Kabeer, 22SW067
+Member: Mubashir Hussain, 22SW061
+Member: Azhar Hussain, 22SW110
+[LinkedIn QR spaces reserved beneath the three student names]

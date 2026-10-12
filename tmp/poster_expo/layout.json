@@ -1,0 +1,436 @@
+[
+  {
+    "text": "AutoMetric AI",
+    "x": 353,
+    "top": 85,
+    "width": 1271,
+    "height": 132
+  },
+  {
+    "text": "AI Assisted Car Valuation<br/>and Maintenance",
+    "x": 357,
+    "top": 225,
+    "width": 1267,
+    "height": 110
+  },
+  {
+    "text": "Built for Pakistan's used car market",
+    "x": 104,
+    "top": 357,
+    "width": 1520,
+    "height": 41.85
+  },
+  {
+    "text": "Price estimates in PKR",
+    "x": 104,
+    "top": 466,
+    "width": 850,
+    "height": 43.2
+  },
+  {
+    "text": "Android and web",
+    "x": 1064,
+    "top": 466,
+    "width": 560,
+    "height": 43.2
+  },
+  {
+    "text": "ABSTRACT",
+    "x": 104,
+    "top": 583,
+    "width": 1520,
+    "height": 49
+  },
+  {
+    "text": "Buying or selling a used car often begins with one question: what is a reasonable asking price? AutoMetric AI uses vehicle listings from Pakistan to estimate prices from a car&#x27;s specifications and mileage. Available on Android and web, it gives buyers and sellers a useful starting point for comparison and negotiation. Owners can also keep service records and plan upcoming maintenance in the same app.",
+    "x": 104,
+    "top": 653,
+    "width": 1520,
+    "height": 245
+  },
+  {
+    "text": "PROBLEM STATEMENT",
+    "x": 104,
+    "top": 1001,
+    "width": 1520,
+    "height": 49
+  },
+  {
+    "text": "Similar-looking cars can carry very different asking prices. Checking listings manually takes time, while differences in age, mileage and variant make comparisons difficult. Service records and maintenance deadlines are also easy to lose track of.",
+    "x": 104,
+    "top": 1071,
+    "width": 1520,
+    "height": 147
+  },
+  {
+    "text": "AIM AND OBJECTIVES",
+    "x": 104,
+    "top": 1351,
+    "width": 1520,
+    "height": 49
+  },
+  {
+    "text": "<b>Aim:</b> Provide a locally relevant price reference and a simple way to manage vehicle upkeep.",
+    "x": 104,
+    "top": 1421,
+    "width": 1520,
+    "height": 49
+  },
+  {
+    "text": "Estimate used car prices using vehicle details and local listing data.",
+    "x": 135,
+    "top": 1548,
+    "width": 1489,
+    "height": 47.25
+  },
+  {
+    "text": "Let users save valuations for later comparison.",
+    "x": 135,
+    "top": 1612.25,
+    "width": 1489,
+    "height": 47.25
+  },
+  {
+    "text": "Organize service records and track upcoming maintenance.",
+    "x": 135,
+    "top": 1676.5,
+    "width": 1489,
+    "height": 47.25
+  },
+  {
+    "text": "PROPOSED SOLUTION",
+    "x": 104,
+    "top": 1858,
+    "width": 1520,
+    "height": 49
+  },
+  {
+    "text": "Enter a car&#x27;s details to view an estimated price in PKR. Sign in to save valuations or manage a separate garage with multiple cars. Record services and odometer readings to review upcoming maintenance.",
+    "x": 104,
+    "top": 1928,
+    "width": 1520,
+    "height": 147
+  },
+  {
+    "text": "METHODOLOGY",
+    "x": 104,
+    "top": 2200,
+    "width": 1520,
+    "height": 49
+  },
+  {
+    "text": "01",
+    "x": 104,
+    "top": 2277,
+    "width": 85,
+    "height": 56.7
+  },
+  {
+    "text": "<b>Collect:</b> Gather used car listings from PakWheels.",
+    "x": 218,
+    "top": 2279,
+    "width": 1406,
+    "height": 45
+  },
+  {
+    "text": "02",
+    "x": 104,
+    "top": 2349,
+    "width": 85,
+    "height": 56.7
+  },
+  {
+    "text": "<b>Prepare:</b> Clean records and standardize vehicle details.",
+    "x": 218,
+    "top": 2351,
+    "width": 1406,
+    "height": 45
+  },
+  {
+    "text": "03",
+    "x": 104,
+    "top": 2421,
+    "width": 85,
+    "height": 56.7
+  },
+  {
+    "text": "<b>Develop:</b> Compare prediction models and select XGBoost.",
+    "x": 218,
+    "top": 2423,
+    "width": 1406,
+    "height": 45
+  },
+  {
+    "text": "04",
+    "x": 104,
+    "top": 2493,
+    "width": 85,
+    "height": 56.7
+  },
+  {
+    "text": "<b>Connect:</b> Serve predictions through FastAPI and package the backend with Docker.",
+    "x": 218,
+    "top": 2495,
+    "width": 1406,
+    "height": 45
+  },
+  {
+    "text": "05",
+    "x": 104,
+    "top": 2565,
+    "width": 85,
+    "height": 56.7
+  },
+  {
+    "text": "<b>Build:</b> Bring valuation and maintenance features together in Flutter, with Firebase for user records.",
+    "x": 218,
+    "top": 2567,
+    "width": 1406,
+    "height": 90
+  },
+  {
+    "text": "RESULTS",
+    "x": 104,
+    "top": 2795,
+    "width": 1520,
+    "height": 49
+  },
+  {
+    "text": "9,849",
+    "x": 104,
+    "top": 2881,
+    "width": 455,
+    "height": 117
+  },
+  {
+    "text": "prepared vehicle records",
+    "x": 104,
+    "top": 3014,
+    "width": 420,
+    "height": 44
+  },
+  {
+    "text": "Price estimates on Android and web.",
+    "x": 675,
+    "top": 2878,
+    "width": 949,
+    "height": 47.25
+  },
+  {
+    "text": "Saved valuations and a garage for multiple cars.",
+    "x": 675,
+    "top": 2948.25,
+    "width": 949,
+    "height": 47.25
+  },
+  {
+    "text": "Service history and reminders using dates and updated mileage.",
+    "x": 675,
+    "top": 3018.5,
+    "width": 949,
+    "height": 94.5
+  },
+  {
+    "text": "Estimates reflect advertised prices and do not replace a vehicle inspection.",
+    "x": 104,
+    "top": 3187,
+    "width": 1520,
+    "height": 39
+  },
+  {
+    "text": "TECHNOLOGIES USED",
+    "x": 104,
+    "top": 3310,
+    "width": 1520,
+    "height": 49
+  },
+  {
+    "text": "Flutter and Dart",
+    "x": 104,
+    "top": 3380,
+    "width": 690,
+    "height": 47.25
+  },
+  {
+    "text": "Android and web interface",
+    "x": 104,
+    "top": 3431,
+    "width": 690,
+    "height": 40
+  },
+  {
+    "text": "Python and XGBoost",
+    "x": 900.0,
+    "top": 3380,
+    "width": 690,
+    "height": 47.25
+  },
+  {
+    "text": "Data preparation and price prediction",
+    "x": 900.0,
+    "top": 3431,
+    "width": 690,
+    "height": 40
+  },
+  {
+    "text": "Firebase",
+    "x": 104,
+    "top": 3505,
+    "width": 690,
+    "height": 47.25
+  },
+  {
+    "text": "Accounts and personal records",
+    "x": 104,
+    "top": 3556,
+    "width": 690,
+    "height": 40
+  },
+  {
+    "text": "FastAPI and Docker",
+    "x": 900.0,
+    "top": 3505,
+    "width": 690,
+    "height": 47.25
+  },
+  {
+    "text": "Prediction service and packaging",
+    "x": 900.0,
+    "top": 3556,
+    "width": 690,
+    "height": 40
+  },
+  {
+    "text": "SUMMARY",
+    "x": 104,
+    "top": 3719,
+    "width": 1520,
+    "height": 49
+  },
+  {
+    "text": "AutoMetric AI gives buyers and sellers a data-based starting point for price discussions, while helping owners keep vehicle care organized.",
+    "x": 104,
+    "top": 3786,
+    "width": 1100,
+    "height": 92
+  },
+  {
+    "text": "PROJECT DEMO",
+    "x": 1394,
+    "top": 3695,
+    "width": 254,
+    "height": 35.1
+  },
+  {
+    "text": "Demo QR",
+    "x": 1428,
+    "top": 3808,
+    "width": 186,
+    "height": 33.75
+  },
+  {
+    "text": "SUPERVISOR",
+    "x": 104.0,
+    "top": 3990,
+    "width": 380.0,
+    "height": 33.75
+  },
+  {
+    "text": "Dr. Din Muhammad<br/>Sangrasi",
+    "x": 109.0,
+    "top": 4037,
+    "width": 370.0,
+    "height": 74
+  },
+  {
+    "text": "Final Year Project",
+    "x": 104.0,
+    "top": 4166,
+    "width": 380.0,
+    "height": 33.75
+  },
+  {
+    "text": "LEADER",
+    "x": 484.0,
+    "top": 3990,
+    "width": 380.0,
+    "height": 33.75
+  },
+  {
+    "text": "Abdul Kabeer",
+    "x": 489.0,
+    "top": 4037,
+    "width": 370.0,
+    "height": 37
+  },
+  {
+    "text": "22SW067",
+    "x": 484.0,
+    "top": 4082,
+    "width": 380.0,
+    "height": 35.1
+  },
+  {
+    "text": "LinkedIn<br/>QR",
+    "x": 611.0,
+    "top": 4160,
+    "width": 126,
+    "height": 56
+  },
+  {
+    "text": "MEMBER",
+    "x": 864.0,
+    "top": 3990,
+    "width": 380.0,
+    "height": 33.75
+  },
+  {
+    "text": "Mubashir Hussain",
+    "x": 869.0,
+    "top": 4037,
+    "width": 370.0,
+    "height": 37
+  },
+  {
+    "text": "22SW061",
+    "x": 864.0,
+    "top": 4082,
+    "width": 380.0,
+    "height": 35.1
+  },
+  {
+    "text": "LinkedIn<br/>QR",
+    "x": 991.0,
+    "top": 4160,
+    "width": 126,
+    "height": 56
+  },
+  {
+    "text": "MEMBER",
+    "x": 1244.0,
+    "top": 3990,
+    "width": 380.0,
+    "height": 33.75
+  },
+  {
+    "text": "Azhar Hussain",
+    "x": 1249.0,
+    "top": 4037,
+    "width": 370.0,
+    "height": 37
+  },
+  {
+    "text": "22SW110",
+    "x": 1244.0,
+    "top": 4082,
+    "width": 380.0,
+    "height": 35.1
+  },
+  {
+    "text": "LinkedIn<br/>QR",
+    "x": 1371.0,
+    "top": 4160,
+    "width": 126,
+    "height": 56
+  }
+]

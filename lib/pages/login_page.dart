@@ -2,9 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../auth/auth_service.dart';
-import '../components/my_social_button.dart';
+import '../components/google_sign_in_button.dart';
 import '../components/my_textfield.dart';
 import '../constants/app_colors.dart';
+import '../components/auth_web_spacing.dart';
 
 
 class LoginPage extends StatelessWidget {
@@ -52,14 +53,17 @@ class WebLoginLayout extends StatelessWidget {
 
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final leftWidth = (screenWidth * 0.28).clamp(300.0, 430.0);
+    final leftWidth = AuthWebSpacing.panelWidth(
+      screenWidth, AuthWebSpacing.brandingMaxWidth,
+    );
 
-    final cardWidth = (screenWidth * 0.34).clamp(380.0, 470.0);
+    final cardWidth = AuthWebSpacing.panelWidth(
+      screenWidth, AuthWebSpacing.cardMaxWidth,
+    );
 
-    final gap = (screenWidth * 0.06).clamp(40.0, 150.0);
+    final gap = AuthWebSpacing.gap(screenWidth);
 
-    final horizontalPadding =
-    (screenWidth * 0.05).clamp(20.0, 70.0);
+    const horizontalPadding = AuthWebSpacing.horizontalPadding;
 
     return Stack(
       children: [
@@ -88,16 +92,17 @@ class WebLoginLayout extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 minHeight: MediaQuery.of(context).size.height -
-                    MediaQuery.of(context).padding.top,
+                    MediaQuery.paddingOf(context).vertical,
               ),
               child: Center(
                 child: Padding(
                   padding:  EdgeInsets.symmetric(
                     horizontal: horizontalPadding,
-                    vertical: 40,
+                    vertical: AuthWebSpacing.verticalPadding,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    // Do not centre branding against a form taller than the viewport.
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
@@ -107,9 +112,9 @@ class WebLoginLayout extends StatelessWidget {
                       SizedBox(
                         width: leftWidth,
                         child: Padding(
-                          padding: const EdgeInsets.only(top: 30),
+                          padding: EdgeInsets.zero,
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
 
@@ -149,72 +154,34 @@ class WebLoginLayout extends StatelessWidget {
                               const SizedBox(height: 10),
 
                               const Text(
-                                "Smart Car Valuation",
+                                "Smart Car Price Estimation",
                                 style: TextStyle(
                                   fontSize: 22,
                                   color: Colors.white70,
                                 ),
                               ),
 
-                              const SizedBox(height: 45),
+                              const SizedBox(height: 42),
 
-                              const Row(
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    "AI Powered Analysis",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ],
+                              const _BenefitRow(
+                                icon: Icons.auto_awesome_rounded,
+                                text: 'AI-Powered Estimation',
                               ),
 
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 18),
 
-                              const Row(
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    "Accurate Car Valuation",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ],
+                              const _BenefitRow(
+                                icon: Icons.build_outlined,
+                                text: 'Smart Car Maintenance Management',
                               ),
 
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 18),
 
-                              const Row(
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    "Evaluation History",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ],
+                              const _BenefitRow(
+                                icon: Icons.bookmark_outline_rounded,
+                                text: 'Save Evaluations Efficiently',
                               ),
+
                             ],
                           ),
                         ),
@@ -340,7 +307,7 @@ class AndroidLoginLayout extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 const Text(
-                  'Smart Car Valuation',
+                  'Smart Car Price Estimation',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white70,
@@ -401,6 +368,14 @@ class _LoginFormState extends State<LoginForm> {
   final TextEditingController _pwdController = TextEditingController();
 
   bool isLoading = false;
+  bool isGoogleLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _pwdController.dispose();
+    super.dispose();
+  }
 
   void login(BuildContext context) async {
     final authService = AuthService();
@@ -615,7 +590,7 @@ class _LoginFormState extends State<LoginForm> {
               ),
               elevation: 8,
             ),
-            onPressed: isLoading ? null : () => login(context),
+            onPressed: isLoading || isGoogleLoading ? null : () => login(context),
             child: isLoading
                 ? const SizedBox(
                     width: 24,
@@ -662,12 +637,9 @@ class _LoginFormState extends State<LoginForm> {
 
         SizedBox(
           width: double.infinity,
-          child: MySocialButton(
-            imagePath: 'assets/google.png',
-            label: 'Continue with Google',
-            onPressed: () {
-              // Google Sign-In
-            },
+          child: GoogleSignInButton(
+            enabled: !isLoading && !isGoogleLoading,
+            onBusyChanged: (busy) => setState(() => isGoogleLoading = busy),
           ),
         ),
 
@@ -684,7 +656,7 @@ class _LoginFormState extends State<LoginForm> {
                 WidgetSpan(
                   alignment: PlaceholderAlignment.middle,
                   child: GestureDetector(
-                    onTap: widget.onTap,
+                    onTap: isLoading || isGoogleLoading ? null : widget.onTap,
                     child: const Text(
                       "Create Account",
                       style: TextStyle(
@@ -769,4 +741,35 @@ Widget circleDecoration(double size) {
       color: Colors.white.withOpacity(0.08),
     ),
   );
+}
+
+class _BenefitRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _BenefitRow({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: Colors.white, size: 21),
+        ),
+        const SizedBox(width: 13),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(color: Colors.white, fontSize: 17),
+          ),
+        ),
+      ],
+    );
+  }
 }

@@ -62,7 +62,7 @@ class HomeAppBar extends StatelessWidget {
               SizedBox(height: 2),
 
               Text(
-                "AI Powered Valuation",
+                "AI-Powered Estimation",
                 style: TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ],
