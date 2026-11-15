@@ -1,4 +1,4 @@
-package com.example.autometric_ai
+package com.autometric.ai
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
